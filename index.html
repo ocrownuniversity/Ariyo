@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zmonie Rich Family Network</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Fraunces:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--g:#b8892b;--g2:#e8c766;--k:#0c0c0c;--l:#f4f3ef}
+*{box-sizing:border-box}body{margin:0;font:15px/1.55 Manrope,system-ui,sans-serif;color:var(--k);background:#fff}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;margin:.2em 0 .4em}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 16px;background:var(--k);color:#fff;position:sticky;top:0;z-index:5;min-height:52px}
+.bar b{color:var(--g2);font-family:Fraunces,serif}.bar img{height:30px;vertical-align:middle;margin-right:8px}
+.nav{display:flex;gap:4px;flex-wrap:wrap}.nav a{color:#fff;padding:6px 9px;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none}.nav a.on{color:var(--g2)}
+@media(max-width:860px){.nav{display:none;position:absolute;top:52px;left:0;right:0;background:var(--k);padding:8px 16px 14px;flex-direction:column}.nav.open{display:flex}}
+@media(min-width:861px){.burger{display:none}}
+.burger{background:none;border:1px solid var(--g);color:var(--g2);border-radius:6px;padding:5px 10px;font-size:18px}
+button,a{cursor:pointer}
+.btn{background:var(--g);color:#000;border:0;border-radius:8px;padding:10px 16px;font:700 14px Manrope,sans-serif}
+.btn.k{background:var(--k);color:#fff}.btn.o{background:none;border:1.5px solid var(--g);color:inherit}.btn.s{padding:6px 10px;font-size:13px}.btn.r{background:#b3261e;color:#fff}.btn:disabled{opacity:.5}
+.wrap{max-width:1000px;margin:0 auto;padding:16px}
+.hero{background:var(--k);color:#fff;padding:60px 16px;border-bottom:4px solid var(--g)}.hero h1{font-size:clamp(30px,7vw,54px);max-width:660px;margin-bottom:12px}.hero p{max-width:520px;color:#ddd}
+.card{background:#fff;border:1px solid #e4e1d8;border-radius:12px;padding:16px;margin:0 0 12px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.stat small{color:#666}.stat b{display:block;font-size:26px;font-family:Fraunces,serif}
+.f{display:block;margin:0 0 10px}.f span{display:block;font-weight:600;font-size:13px;margin-bottom:3px}
+input,select,textarea{width:100%;padding:10px;border:1px solid #cfcab9;border-radius:8px;font:inherit;background:#fff}input[type=checkbox]{width:auto}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 16px;background:var(--l);position:sticky;top:52px;z-index:4}
+.tabs button{white-space:nowrap;border:0;background:#fff;border-radius:20px;padding:7px 13px;font:600 13px Manrope,sans-serif}.tabs .on{background:var(--k);color:var(--g2)}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:8px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}
+.tag{padding:2px 8px;border-radius:10px;font-size:12px;font-weight:700;background:var(--l)}.tag.active,.tag.approved{background:#dff3e0}.tag.pending{background:#fff1c9}.tag.suspended,.tag.rejected{background:#fbdcd9}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--k);color:#fff;padding:10px 16px;border-radius:8px;z-index:20;border-left:4px solid var(--g);max-width:92vw}.toast.err{border-color:#e5534b}
+.spin{width:28px;height:28px;border:3px solid #ddd;border-top-color:var(--g);border-radius:50%;animation:s 1s linear infinite;margin:40px auto}@keyframes s{to{transform:rotate(360deg)}}
+.dot{background:#e5534b;color:#fff;border-radius:10px;padding:0 6px;font-size:11px;margin-left:4px}
+img.rc{max-width:100%;max-height:360px;border-radius:8px;margin-top:8px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.muted{color:#666;font-size:13px}.pre{white-space:pre-wrap}
+</style></head><body><div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script type="text/babel">
+// ====== 1. PASTE YOUR FIREBASE WEB APP CONFIG HERE (see SETUP.md) ======
+const FB={apiKey:"PASTE_API_KEY",authDomain:"PASTE.firebaseapp.com",projectId:"PASTE",appId:"PASTE"};
+// =======================================================================
+const {useState,useEffect,createContext,useContext}=React;
+const OK=!FB.apiKey.startsWith("PASTE");
+let auth,db;if(OK){firebase.initializeApp(FB);auth=firebase.auth();db=firebase.firestore();}
+const TS=()=>firebase.firestore.FieldValue.serverTimestamp();
+const toast=(m,t)=>window.dispatchEvent(new CustomEvent("toast",{detail:{m,t}}));
+const naira=n=>"₦"+Number(n||0).toLocaleString();
+const fmt=t=>t&&t.toDate?t.toDate().toLocaleDateString("en-NG",{day:"numeric",month:"short",year:"numeric"}):"";
+const secs=t=>t&&t.seconds?t.seconds:0;
+const D={name:"Zmonie Rich Family Network",logo:"",fee:5000,bankName:"",accountNumber:"",accountName:"",phone:"",email:"",whatsapp:"",
+about:"Zmonie Rich Family Network is a membership community for digital learning and networking. Members get access to training, e-books and a directory of fellow members.",
+faqs:"How much is membership?|A one-time fee, shown on the Register page.\nHow do I pay?|By bank transfer. Upload your receipt and an administrator verifies it.\nDoes membership pay me for referring people?|No. The fee covers access to learning materials and the community only.",
+terms:"1. Membership is a one-time fee for access to learning materials and community features.\n2. The fee is not an investment and carries no earnings, bonuses or commissions for recruiting members.\n3. Accounts become active only after an administrator verifies payment.\n4. Accounts may be suspended for misuse.",
+privacy:"We collect your name, username, email, phone number and payment receipt to run your membership. Other members only see your name, username and community category. We do not sell your data."};
+const INFO={
+about:["About Us",null],
+how:["How It Works",["1. Register a free account.","2. Pay the one-time membership fee by bank transfer.","3. Submit your payment details and receipt.","4. An administrator verifies the payment and activates your account.","5. Learn, read e-books and connect with the community."]],
+benefits:["Membership Benefits",["Digital business training and video lessons.","E-books and marketing resources.","Member directory and community categories.","Announcements, notifications and support."]],
+training:["Digital Training",["Short lessons on digital business, marketing and personal finance, organised by category. Active members track their progress."]],
+ebooks:["E-books",["A library of e-books linked from the member area. Membership is required for access."]]};
+const Ctx=createContext();const useApp=()=>useContext(Ctx);
+
+function useQ(make,deps){const[d,setD]=useState(null);const[n,setN]=useState(0);
+ useEffect(()=>{let live=1;make().get().then(s=>live&&setD(s.docs?s.docs.map(x=>({id:x.id,...x.data()})):(s.exists?[{id:s.id,...s.data()}]:[]))).catch(e=>{toast(e.message,"err");live&&setD([])});return()=>{live=0}},[...deps,n]);
+ return[d,()=>{setD(null);setN(n+1)}]}
+const Spin=()=><div className="spin"/>;
+const F=({l,...p})=><label className="f"><span>{l}</span><input {...p}/></label>;
+const logA=(action,detail)=>db.collection("adminLogs").add({actor:auth.currentUser.uid,actorEmail:auth.currentUser.email,action,detail:String(detail||""),createdAt:TS()}).catch(()=>{});
+function csv(name,rows){const t=rows.map(r=>r.map(c=>'"'+String(c??"").replace(/"/g,'""')+'"').join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:"text/csv"}));a.download=name;a.click()}
+async function compress(file){const img=await new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>j(Error("Not a valid image"));i.src=URL.createObjectURL(file)});
+ let w=Math.min(1000,img.width),q=.7;for(let t=0;t<6;t++){const c=document.createElement("canvas");c.width=w;c.height=Math.round(img.height*w/img.width);c.getContext("2d").drawImage(img,0,0,c.width,c.height);const o=c.toDataURL("image/jpeg",q);if(o.length<600000)return o;w=Math.round(w*.8);q-=.08}throw Error("Image too large even after compression")}
+
+function Toasts(){const[t,setT]=useState(null);useEffect(()=>{const h=e=>{setT(e.detail);setTimeout(()=>setT(null),4000)};window.addEventListener("toast",h);return()=>window.removeEventListener("toast",h)},[]);return t?<div className={"toast "+(t.t||"")}>{t.m}</div>:null}
+
+function App(){
+ const[S,setS]=useState(D),[u,setU]=useState(null),[prof,setProf]=useState(null),[adm,setAdm]=useState(null),[busy,setBusy]=useState(true),[page,setPage]=useState("home");
+ const load=async user=>{if(!user){setProf(null);setAdm(null);return}
+  const a=await db.doc("subadmins/"+user.uid).get();if(a.exists&&a.data().active){setAdm(a.data());setProf(null);return}
+  setAdm(null);const p=await db.doc("users/"+user.uid).get();setProf(p.exists?{id:p.id,...p.data()}:null)};
+ const reload=()=>load(auth.currentUser).catch(e=>toast(e.message,"err"));
+ useEffect(()=>{if(!OK){setBusy(false);return}
+  db.doc("settings/site").get().then(s=>s.exists&&setS({...D,...s.data()})).catch(()=>{});
+  return auth.onAuthStateChanged(async user=>{setU(user);try{await load(user)}catch(e){toast(e.message,"err")}setBusy(false)})},[]);
+ if(!OK)return<div className="wrap"><div className="card"><h2>Firebase not configured</h2><p>Open index.html, paste your Firebase web app config into the <b>FB</b> object near the top of the script, then reload. See SETUP.md.</p></div></div>;
+ if(busy)return<Spin/>;
+ const ctx={S,setS,u,prof,adm,reload,page,go:setPage};
+ return<Ctx.Provider value={ctx}><Toasts/>{u&&adm?<Admin/>:u?<Member/>:<Public/>}</Ctx.Provider>}
+
+const Brand=()=>{const{S}=useApp();return<span>{S.logo&&<img src={S.logo} alt=""/>}<b>{S.name}</b></span>};
+const logout=()=>auth.signOut();
+
+function Public(){
+ const{S,page,go}=useApp();const[o,setO]=useState(false);
+ const L=[["home","Home"],["about","About Us"],["how","How It Works"],["benefits","Benefits"],["training","Training"],["ebooks","E-books"],["faqs","FAQs"],["contact","Contact"],["terms","Terms"],["privacy","Privacy"],["register","Register"],["login","Login"]];
+ const to=k=>{go(k);setO(false);window.scrollTo(0,0)};
+ let body;
+ if(page==="home")body=<><div className="hero"><div className="wrap"><h1>Learn together. Grow together.</h1><p>{S.about}</p><div className="row" style={{marginTop:18}}><button className="btn" onClick={()=>to("register")}>Register</button><button className="btn o" style={{color:"#fff"}} onClick={()=>to("login")}>Login</button></div></div></div>
+  <div className="wrap grid">{[["Digital training","Business and marketing lessons in clear categories."],["E-books","Reading resources available to active members."],["Community","A member directory and announcements."]].map(c=><div className="card" key={c[0]}><h3>{c[0]}</h3><p>{c[1]}</p></div>)}</div></>;
+ else if(page==="login")body=<Login/>;
+ else if(page==="register")body=<Register/>;
+ else if(page==="faqs")body=<Pg t="FAQs">{S.faqs.split("\n").filter(Boolean).map((l,i)=>{const[q,a]=l.split("|");return<div className="card" key={i}><b>{q}</b><p>{a}</p></div>})}</Pg>;
+ else if(page==="contact")body=<Pg t="Contact Us"><div className="card"><p>Phone: {S.phone||"-"}</p><p>Email: {S.email||"-"}</p><p>WhatsApp: {S.whatsapp||"-"}</p></div></Pg>;
+ else if(page==="terms"||page==="privacy")body=<Pg t={page==="terms"?"Terms and Conditions":"Privacy Policy"}><div className="card pre">{S[page]}</div></Pg>;
+ else{const[t,p]=INFO[page]||INFO.about;body=<Pg t={t}>{p?p.map((x,i)=><p key={i}>{x}</p>):<p className="pre">{S.about}</p>}</Pg>}
+ return<><div className="bar"><a onClick={()=>to("home")}><Brand/></a><button className="burger" onClick={()=>setO(!o)}>☰</button>
+  <div className={"nav"+(o?" open":"")}>{L.map(l=><a key={l[0]} className={page===l[0]?"on":""} onClick={()=>to(l[0])}>{l[1]}</a>)}</div></div>{body}</>}
+const Pg=({t,children})=><div className="wrap"><h2>{t}</h2>{children}</div>;
+
+function Login(){const[b,setB]=useState(false);const{go}=useApp();
+ async function sub(e){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));setB(true);try{await auth.signInWithEmailAndPassword(f.email.trim(),f.password)}catch(x){toast("Login failed: "+x.message.replace("Firebase: ",""),"err");setB(false)}}
+ async function reset(e){const em=e.target.form.email.value.trim();if(!em)return toast("Enter your email first","err");try{await auth.sendPasswordResetEmail(em);toast("Password reset email sent")}catch(x){toast(x.message,"err")}}
+ return<div className="wrap" style={{maxWidth:420}}><h2>Login</h2><form className="card" onSubmit={sub}><F l="Email" name="email" type="email" required/><F l="Password" name="password" type="password" required/><button className="btn" disabled={b}>{b?"Signing in…":"Login"}</button> <button type="button" className="btn o s" onClick={reset}>Forgot password</button><p className="muted">New here? <a onClick={()=>go("register")}><u>Register</u></a></p></form></div>}
+
+function Register(){const{S,reload}=useApp();const[b,setB]=useState(false);
+ async function sub(e){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));
+  const un=f.username.trim().toLowerCase(),ph=f.phone.trim(),em=f.email.trim();
+  if(!/^[a-z0-9_]{3,20}$/.test(un))return toast("Username: 3-20 letters, numbers or underscore","err");
+  if(!/^0\d{10}$/.test(ph))return toast("Phone must be 11 digits starting with 0","err");
+  if(f.password.length<8||f.password!==f.confirm)return toast("Passwords must match and be at least 8 characters","err");
+  if(f.terms!=="on")return toast("Accept the Terms and Conditions","err");
+  setB(true);let cred;
+  try{cred=await auth.createUserWithEmailAndPassword(em,f.password);const id=cred.user.uid;const bt=db.batch();
+   bt.set(db.doc("users/"+id),{fullName:f.fullName.trim(),username:un,email:em,phone:ph,bankName:f.bankName.trim(),accountNumber:f.accountNumber.trim(),accountName:f.accountName.trim(),status:"pending",createdAt:TS()});
+   bt.set(db.doc("usernames/"+un),{uid:id});bt.set(db.doc("phoneNumbers/"+ph),{uid:id});
+   bt.set(db.collection("notifications").doc(),{uid:id,title:"Welcome",body:"Your account is pending. Pay the membership fee and submit your receipt to activate it.",read:false,createdAt:TS()});
+   await bt.commit();await reload();toast("Registration complete")}
+  catch(x){if(cred)await cred.user.delete().catch(()=>{});toast(/permission|exists/i.test(x.message)?"That username or phone number is already registered":x.message.replace("Firebase: ",""),"err");setB(false)}}
+ return<div className="wrap" style={{maxWidth:520}}><h2>Register</h2><form className="card" onSubmit={sub}>
+  <F l="Full name" name="fullName" required/><F l="Username" name="username" required/><F l="Email" name="email" type="email" required/><F l="Phone number" name="phone" inputMode="numeric" required/>
+  <F l="Password" name="password" type="password" required/><F l="Confirm password" name="confirm" type="password" required/>
+  <p className="muted">Bank details are optional and only used for approved refunds.</p><F l="Bank name (optional)" name="bankName"/><F l="Account number (optional)" name="accountNumber"/><F l="Account name (optional)" name="accountName"/>
+  <label className="f"><input type="checkbox" name="terms"/> I accept the Terms and Conditions. Membership fee: {naira(S.fee)}, one-time.</label>
+  <button className="btn" disabled={b}>{b?"Creating account…":"Create account"}</button></form></div>}
+
+// ================= MEMBER =================
+function Member(){
+ const{prof,S,reload}=useApp();const[t,setT]=useState("overview");
+ const[N,rN]=useQ(()=>db.collection("notifications").where("uid","==",auth.currentUser.uid).limit(50),[]);
+ const out=<button className="btn k s" onClick={logout}>Logout</button>;
+ if(!prof)return<div className="wrap"><div className="card"><p>Finishing account setup…</p><button className="btn s" onClick={reload}>Retry</button> {out}</div></div>;
+ if(prof.status==="suspended")return<><div className="bar"><Brand/>{out}</div><div className="wrap"><div className="card"><h3>Account suspended</h3><p>Contact support: {S.email||S.phone}</p></div></div></>;
+ const act=prof.status==="active",unread=(N||[]).filter(n=>!n.read).length;
+ const T=act?[["overview","Overview"],["profile","My Profile"],["directory","Member Directory"],["network","Community Network"],["training","Digital Training"],["ebooks","E-books"],["ann","Announcements"],["notes","Notifications"],["support","Support"]]:[["overview","Payment"],["profile","My Profile"],["notes","Notifications"],["support","Support"]];
+ return<><div className="bar"><Brand/><span className="row"><span className="muted" style={{color:"#ccc"}}>{prof.username}</span>{out}</span></div>
+ <div className="tabs">{T.map(x=><button key={x[0]} className={t===x[0]?"on":""} onClick={()=>setT(x[0])}>{x[1]}{x[0]==="notes"&&unread>0&&<span className="dot">{unread}</span>}</button>)}</div>
+ <div className="wrap">{t==="overview"&&(act?<Overview N={N}/>:<Pay/>)}{t==="profile"&&<Profile/>}{t==="directory"&&<Dir/>}{t==="network"&&<Dir net/>}
+ {t==="training"&&<Learn col="trainingMaterials" title="Digital Training"/>}{t==="ebooks"&&<Learn col="ebooks" title="E-books"/>}{t==="ann"&&<Ann/>}
+ {t==="notes"&&<Notes N={N} r={rN}/>}{t==="support"&&<div className="card"><h3>Support</h3><p>Phone: {S.phone||"-"}</p><p>Email: {S.email||"-"}</p><p>WhatsApp: {S.whatsapp||"-"}</p></div>}</div></>}
+
+function Overview({N}){
+ const{prof}=useApp();const[C]=useQ(()=>db.collection("community").limit(500),[]);
+ const[A]=useQ(()=>db.collection("trainingMaterials").where("published","==",true),[]);const[B]=useQ(()=>db.collection("ebooks").where("published","==",true),[]);
+ const[P]=useQ(()=>db.doc("learningProgress/"+prof.id),[]);
+ if(!C||!A||!B||!P||!N)return<Spin/>;
+ const all=[...A,...B],done=((P[0]||{}).completed||[]).filter(i=>all.some(a=>a.id===i)).length,pct=all.length?Math.round(100*done/all.length):0;
+ return<><div className="grid"><div className="card stat"><small>Membership</small><b>{prof.status}</b></div><div className="card stat"><small>Joined</small><b style={{fontSize:18}}>{fmt(prof.createdAt)}</b></div>
+ <div className="card stat"><small>Community members</small><b>{C.length}</b></div><div className="card stat"><small>Learning progress</small><b>{pct}%</b><small>{done} of {all.length} lessons</small></div>
+ <div className="card stat"><small>Materials available</small><b>{all.length}</b></div></div>
+ <div className="card"><h3>Recent notifications</h3>{N.length?N.sort((a,b)=>secs(b.createdAt)-secs(a.createdAt)).slice(0,3).map(n=><p key={n.id}><b>{n.title}</b><br/>{n.body}</p>):<p className="muted">Nothing yet.</p>}</div></>}
+
+function Pay(){
+ const{prof,S}=useApp();const[P,r]=useQ(()=>db.doc("payments/"+prof.id),[]);const[b,setB]=useState(false);
+ async function sub(e){e.preventDefault();const f=e.target,fd=Object.fromEntries(new FormData(f)),file=f.receipt.files[0];
+  if(!file||!file.type.startsWith("image/"))return toast("Choose a receipt image","err");if(file.size>8e6)return toast("Image must be under 8MB","err");
+  if(!fd.sender.trim()||fd.ref.trim().length<4)return toast("Enter sender name and transaction reference","err");
+  if(!confirm("Submit these payment details?"))return;setB(true);
+  try{const receipt=await compress(file);
+   await db.doc("payments/"+prof.id).set({uid:prof.id,username:prof.username,amount:Number(S.fee),senderName:fd.sender.trim(),reference:fd.ref.trim(),paymentDate:fd.date,receipt,status:"pending",createdAt:TS()});
+   await db.collection("notifications").add({uid:prof.id,title:"Payment submitted",body:"An administrator will verify your payment.",read:false,createdAt:TS()});
+   toast("Payment submitted");r()}catch(x){toast(x.message,"err")}setB(false)}
+ if(!P)return<Spin/>;const p=P[0];
+ return<><div className="card"><h3>Pay the membership fee: {naira(S.fee)}</h3><p>Transfer to:</p><p><b>{S.bankName||"(bank not set)"}</b><br/>{S.accountNumber}<br/>{S.accountName}</p></div>
+ {p&&p.status==="pending"?<div className="card"><h3>Payment under review</h3><p>Reference {p.reference} submitted. An administrator will verify it.</p></div>:
+ <form className="card" onSubmit={sub}><h3>{p?"Payment rejected. Resubmit":"Submit payment details"}</h3>{p&&p.reason&&<p>Reason: {p.reason}</p>}
+ <F l="Amount (₦)" value={S.fee} readOnly/><F l="Sender's name" name="sender" required/><F l="Transaction reference" name="ref" required/><F l="Payment date" name="date" type="date" required/><F l="Receipt image" name="receipt" type="file" accept="image/*" required/>
+ <button className="btn" disabled={b}>{b?"Compressing and submitting…":"Submit payment"}</button></form>}</>}
+
+function Profile(){const{prof,reload}=useApp();
+ async function save(e){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));if(!f.fullName.trim())return toast("Name required","err");
+  try{await db.doc("users/"+prof.id).update({fullName:f.fullName.trim(),bankName:f.bankName.trim(),accountNumber:f.accountNumber.trim(),accountName:f.accountName.trim()});await reload();toast("Profile saved")}catch(x){toast(x.message,"err")}}
+ return<form className="card" onSubmit={save}><h3>My Profile</h3><p className="muted">{prof.username} · {prof.email} · {prof.phone}</p><F l="Full name" name="fullName" defaultValue={prof.fullName}/><F l="Bank name" name="bankName" defaultValue={prof.bankName}/><F l="Account number" name="accountNumber" defaultValue={prof.accountNumber}/><F l="Account name" name="accountName" defaultValue={prof.accountName}/><button className="btn">Save changes</button></form>}
+
+function Dir({net}){const[C]=useQ(()=>db.collection("community").limit(500),[]);const[q,setQ]=useState("");const[s,setS]=useState("");
+ if(!C)return<Spin/>;const L=C.filter(m=>(m.fullName+m.username).toLowerCase().includes(q.toLowerCase())&&(!s||m.side===s));
+ return<><h3>{net?"Community Network":"Member Directory"}</h3>
+ {net&&<div className="grid"><div className="card stat"><small>Total members</small><b>{C.length}</b></div><div className="card stat"><small>LEFT category</small><b>{C.filter(m=>m.side==="LEFT").length}</b></div><div className="card stat"><small>RIGHT category</small><b>{C.filter(m=>m.side==="RIGHT").length}</b></div></div>}
+ <div className="row" style={{marginBottom:10}}><input placeholder="Search name or username" value={q} onChange={e=>setQ(e.target.value)} style={{flex:1}}/>{net&&<select value={s} onChange={e=>setS(e.target.value)} style={{width:120}}><option value="">All</option><option>LEFT</option><option>RIGHT</option></select>}</div>
+ <div className="tw card"><table><thead><tr><th>Name</th><th>Username</th><th>Category</th><th>Joined</th></tr></thead><tbody>{L.map(m=><tr key={m.id}><td>{m.fullName}</td><td>{m.username}</td><td>{m.side||"-"}</td><td>{fmt(m.createdAt)}</td></tr>)}</tbody></table></div>
+ {net&&<p className="muted">LEFT and RIGHT are community categories only. They carry no payments or rewards.</p>}</>}
+
+function Learn({col,title}){const{prof}=useApp();const[L]=useQ(()=>db.collection(col).where("published","==",true),[col]);const[P,rP]=useQ(()=>db.doc("learningProgress/"+prof.id),[]);
+ if(!L||!P)return<Spin/>;const done=(P[0]||{}).completed||[];
+ async function tog(id){try{await db.doc("learningProgress/"+prof.id).set({uid:prof.id,completed:done.includes(id)?firebase.firestore.FieldValue.arrayRemove(id):firebase.firestore.FieldValue.arrayUnion(id)},{merge:true});rP()}catch(x){toast(x.message,"err")}}
+ const cats=[...new Set(L.map(x=>x.category||"General"))];
+ return<><h3>{title}</h3>{!L.length&&<p className="muted">Nothing published yet.</p>}{cats.map(c=><div key={c}><h4>{c}</h4>{L.filter(x=>(x.category||"General")===c).map(x=><div className="card" key={x.id}><b>{x.title}</b> {x.kind&&<span className="tag">{x.kind}</span>}<p>{x.description}</p>
+  <div className="row"><a className="btn s" href={x.url} target="_blank" rel="noopener noreferrer">Open</a><button className="btn o s" onClick={()=>tog(x.id)}>{done.includes(x.id)?"Completed ✓ (undo)":"Mark complete"}</button></div></div>)}</div>)}</>}
+
+function Ann(){const[A]=useQ(()=>db.collection("announcements").orderBy("createdAt","desc").limit(30),[]);if(!A)return<Spin/>;
+ return<><h3>Announcements</h3>{!A.length&&<p className="muted">No announcements.</p>}{A.map(a=><div className="card" key={a.id}><b>{a.title}</b> <span className="muted">{fmt(a.createdAt)}</span><p className="pre">{a.body}</p></div>)}</>}
+
+function Notes({N,r}){if(!N)return<Spin/>;
+ async function rd(n){if(n.read)return;try{await db.doc("notifications/"+n.id).update({read:true});r()}catch(x){toast(x.message,"err")}}
+ return<><h3>Notifications</h3>{!N.length&&<p className="muted">No notifications.</p>}{[...N].sort((a,b)=>secs(b.createdAt)-secs(a.createdAt)).map(n=><div className="card" key={n.id} onClick={()=>rd(n)} style={{borderLeft:n.read?"":"4px solid var(--g)"}}><b>{n.title}</b> <span className="muted">{fmt(n.createdAt)}</span><p>{n.body}</p></div>)}</>}
+
+// ================= ADMIN =================
+function Admin(){
+ const{adm,u}=useApp();const has=k=>adm.role==="super"||(adm.perms&&adm.perms[k]);const[t,setT]=useState("dash");
+ const T=[["dash","Dashboard",1],["members","Members",has("members")],["pay","Payments",has("payments")],["comm","Community",has("community")],["train","Training",has("training")],["ebk","E-books",has("training")],["ann","Announcements",has("community")],["notify","Notify Member",has("support")],["subs","Subadmins",adm.role==="super"],["rep","Reports",has("reports")],["set","Website Settings",adm.role==="super"],["logs","Activity Logs",has("reports")]].filter(x=>x[2]);
+ return<><div className="bar"><span><b>Admin</b> <span className="muted" style={{color:"#ccc"}}>{adm.role==="super"?"Super Admin":"Subadmin"} · {u.email}</span></span><button className="btn k s" style={{border:"1px solid var(--g)"}} onClick={logout}>Logout</button></div>
+ <div className="tabs">{T.map(x=><button key={x[0]} className={t===x[0]?"on":""} onClick={()=>setT(x[0])}>{x[1]}</button>)}</div>
+ <div className="wrap">{t==="dash"&&<Dash has={has}/>}{t==="members"&&<Members/>}{t==="pay"&&<Pays/>}{t==="comm"&&<CommAdm/>}{t==="train"&&<Content key="t" col="trainingMaterials" label="training material" kinds/>}{t==="ebk"&&<Content key="e" col="ebooks" label="e-book"/>}
+ {t==="ann"&&<AnnAdm/>}{t==="notify"&&<Notify/>}{t==="subs"&&<Subs/>}{t==="rep"&&<Reports/>}{t==="set"&&<Settings/>}{t==="logs"&&<Logs/>}</div></>}
+
+function Dash({has}){
+ const[U]=useQ(()=>has("members")?db.collection("users").orderBy("createdAt","desc").limit(1000):db.collection("community").limit(1),[]);
+ const[P]=useQ(()=>has("payments")?db.collection("payments").limit(1000):db.collection("community").limit(1),[]);
+ const[A]=useQ(()=>db.collection("trainingMaterials").limit(500),[]);const[B]=useQ(()=>db.collection("ebooks").limit(500),[]);const[C]=useQ(()=>db.collection("community").limit(1000),[]);
+ if(!U||!P||!A||!B||!C)return<Spin/>;const ct=s=>U.filter(x=>x.status===s).length,ap=P.filter(x=>x.status==="approved");
+ const S=(l,v)=><div className="card stat" key={l}><small>{l}</small><b>{v}</b></div>;
+ return<><div className="grid">{has("members")&&[S("Total members",U.length),S("Active",ct("active")),S("Pending",ct("pending")),S("Suspended",ct("suspended"))]}
+ {has("payments")&&[S("Payments awaiting review",P.filter(x=>x.status==="pending").length),S("Verified payments",ap.length),S("Verified total",naira(ap.reduce((a,x)=>a+x.amount,0)))]}
+ {S("Training materials",A.length+B.length)}{S("Community members",C.length)}</div>
+ {has("members")&&<div className="card"><h3>Recent registrations</h3>{U.slice(0,5).map(x=><p key={x.id}>{x.fullName} ({x.username}) <span className={"tag "+x.status}>{x.status}</span></p>)}</div>}</>}
+
+function Members(){const[U,r]=useQ(()=>db.collection("users").orderBy("createdAt","desc").limit(500),[]);const[q,setQ]=useState("");
+ if(!U)return<Spin/>;
+ async function setSt(m,s){if(!confirm((s==="suspended"?"Suspend ":"Reactivate ")+m.username+"?"))return;try{await db.doc("users/"+m.id).update({status:s,updatedAt:TS()});logA(s,m.username);r();toast("Updated")}catch(x){toast(x.message,"err")}}
+ const L=U.filter(m=>(m.fullName+m.username+m.email+m.phone).toLowerCase().includes(q.toLowerCase()));
+ return<><h3>Members</h3><input placeholder="Search name, username, email, phone" value={q} onChange={e=>setQ(e.target.value)} style={{marginBottom:10}}/>
+ <div className="tw card"><table><thead><tr><th>Name</th><th>Contact</th><th>Status</th><th>Joined</th><th/></tr></thead><tbody>{L.map(m=><tr key={m.id}><td>{m.fullName}<br/><span className="muted">{m.username}</span></td><td>{m.email}<br/>{m.phone}</td><td><span className={"tag "+m.status}>{m.status}</span></td><td>{fmt(m.createdAt)}</td>
+ <td>{m.status==="active"&&<button className="btn r s" onClick={()=>setSt(m,"suspended")}>Suspend</button>}{m.status==="suspended"&&<button className="btn s" onClick={()=>setSt(m,"active")}>Reactivate</button>}</td></tr>)}</tbody></table></div></>}
+
+function Pays(){const{u}=useApp();const[P,r]=useQ(()=>db.collection("payments").orderBy("createdAt","desc").limit(100),[]);const[f,setF]=useState("pending");const[open,setO]=useState(null);
+ if(!P)return<Spin/>;
+ async function review(p,ok){let reason="";if(!ok){reason=prompt("Reason for rejection:")||"";if(!reason)return}else if(!confirm("Approve "+naira(p.amount)+" from "+p.username+"? This activates the account."))return;
+  try{await db.runTransaction(async tx=>{const pr=db.doc("payments/"+p.id),ur=db.doc("users/"+p.id);const ps=await tx.get(pr),us=await tx.get(ur);
+   if(!ps.exists||ps.data().status!=="pending")throw Error("This payment was already reviewed");
+   tx.update(pr,{status:ok?"approved":"rejected",reason,reviewedBy:u.uid,reviewedAt:TS()});
+   if(ok){if(us.data().status==="pending")tx.update(ur,{status:"active",updatedAt:TS()});tx.set(db.doc("community/"+p.id),{uid:p.id,username:us.data().username,fullName:us.data().fullName,side:"",createdAt:TS()})}
+   tx.set(db.collection("notifications").doc(),{uid:p.id,title:ok?"Payment approved":"Payment rejected",body:ok?"Your account is now active.":"Reason: "+reason,read:false,createdAt:TS()});
+   tx.set(db.collection("adminLogs").doc(),{actor:u.uid,actorEmail:u.email,action:ok?"approve payment":"reject payment",detail:p.username+" ref "+p.reference,createdAt:TS()})});
+   toast(ok?"Approved":"Rejected");r()}catch(x){toast(x.message,"err")}}
+ const L=P.filter(p=>f==="all"||p.status===f);
+ return<><h3>Payment Verification</h3><select value={f} onChange={e=>setF(e.target.value)} style={{width:160,marginBottom:10}}><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="all">All</option></select>
+ {!L.length&&<p className="muted">No payments.</p>}{L.map(p=><div className="card" key={p.id}><b>{p.username}</b> <span className={"tag "+p.status}>{p.status}</span><p>{naira(p.amount)} · from {p.senderName} · ref {p.reference} · paid {p.paymentDate}</p>
+ <div className="row"><button className="btn o s" onClick={()=>setO(open===p.id?null:p.id)}>{open===p.id?"Hide receipt":"View receipt"}</button>{p.status==="pending"&&<><button className="btn s" onClick={()=>review(p,true)}>Approve</button><button className="btn r s" onClick={()=>review(p,false)}>Reject</button></>}</div>
+ {open===p.id&&<img className="rc" src={p.receipt} alt="receipt"/>}</div>)}</>}
+
+function CommAdm(){const[C,r]=useQ(()=>db.collection("community").orderBy("createdAt","desc").limit(500),[]);if(!C)return<Spin/>;
+ async function set(m,side){try{await db.doc("community/"+m.id).update({side});logA("set category",m.username+" "+side);r();toast("Saved")}catch(x){toast(x.message,"err")}}
+ return<><h3>Community Management</h3><p className="muted">Each member has one category (LEFT or RIGHT). It is a classification only and carries no payments.</p><div className="tw card"><table><tbody>{C.map(m=><tr key={m.id}><td>{m.fullName}<br/><span className="muted">{m.username}</span></td><td><select value={m.side||""} onChange={e=>set(m,e.target.value)}><option value="">Unassigned</option><option>LEFT</option><option>RIGHT</option></select></td></tr>)}</tbody></table></div></>}
+
+function Content({col,label,kinds}){const[L,r]=useQ(()=>db.collection(col).orderBy("createdAt","desc"),[col]);const[ed,setEd]=useState(null);if(!L)return<Spin/>;
+ async function save(e){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));const d={title:f.title.trim(),description:f.description.trim(),category:f.category.trim()||"General",url:f.url.trim(),kind:f.kind||"",published:f.published==="on"};
+  if(!d.title||!/^https?:\/\//.test(d.url))return toast("A title and an http(s) link are required","err");
+  try{if(ed&&ed.id)await db.doc(col+"/"+ed.id).update(d);else await db.collection(col).add({...d,createdAt:TS()});logA("save "+col,d.title);setEd(null);r();toast("Saved")}catch(x){toast(x.message,"err")}}
+ async function del(x){if(!confirm("Delete "+x.title+"?"))return;try{await db.doc(col+"/"+x.id).delete();logA("delete "+col,x.title);r()}catch(e){toast(e.message,"err")}}
+ async function pub(x){try{await db.doc(col+"/"+x.id).update({published:!x.published});r()}catch(e){toast(e.message,"err")}}
+ const e=ed||{};
+ return<><h3>Manage {label}s</h3><form className="card" key={e.id||"new"} onSubmit={save}><F l="Title" name="title" defaultValue={e.title} required/><label className="f"><span>Description</span><textarea name="description" rows="2" defaultValue={e.description}/></label><F l="Category" name="category" defaultValue={e.category}/>
+ {kinds&&<label className="f"><span>Type</span><select name="kind" defaultValue={e.kind||"Video"}><option>Video</option><option>Lesson</option><option>Marketing</option><option>Other</option></select></label>}
+ <F l={label+" link (video URL, PDF or page)"} name="url" type="url" defaultValue={e.url} required/><label className="f"><input type="checkbox" name="published" defaultChecked={!!e.published}/> Published</label>
+ <button className="btn">{e.id?"Update":"Add"}</button> {e.id&&<button type="button" className="btn o" onClick={()=>setEd(null)}>Cancel</button>}</form>
+ {L.map(x=><div className="card" key={x.id}><b>{x.title}</b> <span className={"tag "+(x.published?"active":"pending")}>{x.published?"published":"draft"}</span><p className="muted">{x.category} · {x.url}</p><div className="row"><button className="btn o s" onClick={()=>{setEd(x);window.scrollTo(0,0)}}>Edit</button><button className="btn o s" onClick={()=>pub(x)}>{x.published?"Unpublish":"Publish"}</button><button className="btn r s" onClick={()=>del(x)}>Delete</button></div></div>)}</>}
+
+function AnnAdm(){const[A,r]=useQ(()=>db.collection("announcements").orderBy("createdAt","desc").limit(50),[]);if(!A)return<Spin/>;
+ async function add(e){e.preventDefault();const f=e.target,t=f.title.value.trim(),b=f.body.value.trim();if(!t||!b)return toast("Title and message required","err");try{await db.collection("announcements").add({title:t,body:b,createdAt:TS()});logA("announce",t);f.reset();r()}catch(x){toast(x.message,"err")}}
+ async function del(a){if(!confirm("Delete?"))return;try{await db.doc("announcements/"+a.id).delete();r()}catch(x){toast(x.message,"err")}}
+ return<><h3>Announcements</h3><form className="card" onSubmit={add}><F l="Title" name="title"/><label className="f"><span>Message</span><textarea name="body" rows="3"/></label><button className="btn">Publish</button></form>{A.map(a=><div className="card" key={a.id}><b>{a.title}</b> <span className="muted">{fmt(a.createdAt)}</span><p className="pre">{a.body}</p><button className="btn r s" onClick={()=>del(a)}>Delete</button></div>)}</>}
+
+function Notify(){async function send(e){e.preventDefault();const f=e.target,un=f.un.value.trim().toLowerCase();
+  try{const s=await db.doc("usernames/"+un).get();if(!s.exists)return toast("Username not found","err");await db.collection("notifications").add({uid:s.data().uid,title:f.title.value.trim(),body:f.body.value.trim(),read:false,createdAt:TS()});logA("notify",un);f.reset();toast("Sent")}catch(x){toast(x.message,"err")}}
+ return<form className="card" onSubmit={send}><h3>Send notification</h3><F l="Member username" name="un" required/><F l="Title" name="title" required/><label className="f"><span>Message</span><textarea name="body" rows="3" required/></label><button className="btn">Send</button></form>}
+
+const PERMS=[["members","Member management"],["payments","Payment verification"],["training","Training management"],["community","Community management"],["support","Customer support"],["reports","Report viewing"]];
+function Subs(){const[L,r]=useQ(()=>db.collection("subadmins").limit(100),[]);if(!L)return<Spin/>;
+ async function add(e){e.preventDefault();const f=e.target;if(f.password.value.length<8)return toast("Password needs 8+ characters","err");if(!confirm("Create this subadmin?"))return;
+  const perms={};PERMS.forEach(p=>perms[p[0]]=f[p[0]].checked);
+  try{const sec=firebase.apps.find(a=>a.name==="sec")||firebase.initializeApp(FB,"sec");const c=await sec.auth().createUserWithEmailAndPassword(f.email.value.trim(),f.password.value);await sec.auth().signOut();
+   await db.doc("subadmins/"+c.user.uid).set({name:f.name.value.trim(),email:f.email.value.trim(),role:"sub",active:true,perms,createdAt:TS()});logA("create subadmin",f.email.value);f.reset();r();toast("Subadmin created")}catch(x){toast(x.message,"err")}}
+ async function upd(s,d){try{await db.doc("subadmins/"+s.id).update(d);logA("update subadmin",s.email);r()}catch(x){toast(x.message,"err")}}
+ return<><h3>Subadmins</h3><form className="card" onSubmit={add}><F l="Name" name="name" required/><F l="Email" name="email" type="email" required/><F l="Temporary password" name="password" type="password" required/>{PERMS.map(p=><label className="f" key={p[0]}><input type="checkbox" name={p[0]}/> {p[1]}</label>)}<button className="btn">Create subadmin</button></form>
+ {L.filter(s=>s.role!=="super").map(s=><div className="card" key={s.id}><b>{s.name}</b> <span className="muted">{s.email}</span> <span className={"tag "+(s.active?"active":"suspended")}>{s.active?"active":"revoked"}</span>
+ <div>{PERMS.map(p=><label key={p[0]} style={{display:"block"}}><input type="checkbox" checked={!!(s.perms&&s.perms[p[0]])} onChange={e=>upd(s,{["perms."+p[0]]:e.target.checked})}/> {p[1]}</label>)}</div>
+ <button className="btn o s" onClick={()=>upd(s,{active:!s.active})}>{s.active?"Revoke access":"Restore access"}</button></div>)}</>}
+
+function Reports(){const[U]=useQ(()=>db.collection("users").limit(2000),[]);const[P]=useQ(()=>db.collection("payments").limit(2000),[]);
+ if(!U||!P)return<Spin/>;const ap=P.filter(p=>p.status==="approved");
+ return<><h3>Financial Reports</h3><div className="grid"><div className="card stat"><small>Verified payments</small><b>{ap.length}</b></div><div className="card stat"><small>Verified total</small><b>{naira(ap.reduce((a,p)=>a+p.amount,0))}</b></div><div className="card stat"><small>Rejected</small><b>{P.filter(p=>p.status==="rejected").length}</b></div></div>
+ <div className="row"><button className="btn" onClick={()=>csv("payments.csv",[["Username","Amount","Sender","Reference","Date","Status"],...P.map(p=>[p.username,p.amount,p.senderName,p.reference,p.paymentDate,p.status])])}>Export payments CSV</button>
+ <button className="btn o" onClick={()=>csv("members.csv",[["Name","Username","Email","Phone","Status","Joined"],...U.map(m=>[m.fullName,m.username,m.email,m.phone,m.status,fmt(m.createdAt)])])}>Export members CSV</button></div></>}
+
+function Settings(){const{S,setS}=useApp();const[b,setB]=useState(false);
+ const T=[["name","Website name"],["logo","Logo image URL"],["bankName","Company bank name"],["accountNumber","Account number"],["accountName","Account name"],["fee","Membership fee (₦)","number"],["phone","Contact phone"],["email","Contact email"],["whatsapp","WhatsApp number"]];
+ const X=[["about","About Us"],["faqs","FAQs (one per line: Question|Answer)"],["terms","Terms and Conditions"],["privacy","Privacy Policy"]];
+ async function save(e){e.preventDefault();const f=Object.fromEntries(new FormData(e.target));f.fee=Number(f.fee);if(!(f.fee>0))return toast("Enter a valid fee","err");if(!confirm("Save settings?"))return;setB(true);
+  try{await db.doc("settings/site").set(f,{merge:true});setS({...S,...f});logA("update settings","");toast("Settings saved")}catch(x){toast(x.message,"err")}setB(false)}
+ return<form className="card" onSubmit={save}><h3>Website Settings</h3>{T.map(t=><F key={t[0]} l={t[1]} name={t[0]} type={t[2]||"text"} defaultValue={S[t[0]]}/>)}{X.map(t=><label className="f" key={t[0]}><span>{t[1]}</span><textarea name={t[0]} rows="5" defaultValue={S[t[0]]}/></label>)}<button className="btn" disabled={b}>Save settings</button></form>}
+
+function Logs(){const[L]=useQ(()=>db.collection("adminLogs").orderBy("createdAt","desc").limit(100),[]);if(!L)return<Spin/>;
+ return<><h3>Admin Activity Logs</h3><div className="tw card"><table><thead><tr><th>When</th><th>Admin</th><th>Action</th></tr></thead><tbody>{L.map(l=><tr key={l.id}><td>{fmt(l.createdAt)}</td><td>{l.actorEmail}</td><td>{l.action}<br/><span className="muted">{l.detail}</span></td></tr>)}</tbody></table></div></>}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script></body></html>
