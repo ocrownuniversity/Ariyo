@@ -13,7 +13,6 @@
 <style>
 /* ============================================================
    FLUENT FUTURES JAX  |  single-file site
-   Placeholder markers: delete the ".ph" rule below to hide them all.
    ============================================================ */
 :root{
   --navy:#0C1F3D; --navy-2:#16315A; --gold:#D4AE5B; --gold-ink:#8A6A14;
@@ -36,9 +35,6 @@ p{margin:0 0 1em;max-width:68ch}
 .skip{position:absolute;left:-999px;top:0;background:var(--gold);color:var(--navy);padding:.6rem 1rem;z-index:100;font-weight:600}
 .skip:focus{left:0}
 .wrap{max-width:var(--max);margin:0 auto;padding-inline:var(--gutter)}
-
-/* Placeholder markers - delete this rule when real content is in */
-.ph{outline:2px dashed rgba(212,174,91,.95);outline-offset:5px}
 
 /* ---------- Header ---------- */
 .site-header{position:sticky;top:0;z-index:50;background:var(--white);border-bottom:1px solid var(--line)}
@@ -105,7 +101,7 @@ p{margin:0 0 1em;max-width:68ch}
 .program{display:grid;gap:1.6rem;padding:2.4rem 0;border-bottom:1px solid var(--line)}
 .program:last-of-type{border-bottom:0}
 @media (min-width:860px){.program{grid-template-columns:1.2fr 1fr;gap:3.5rem;align-items:center}.program.flip .photo-slot{order:-1}}
-.photo-slot{aspect-ratio:4/3;background:var(--mist);border:2px dashed #B9C2D3;display:grid;place-items:center;color:var(--muted);font-size:.95rem;text-align:center;padding:1rem;border-radius:2px}
+.photo-slot{aspect-ratio:4/3;background:var(--navy);border-bottom:6px solid var(--gold);display:grid;place-items:center;color:var(--white);font-family:var(--serif);font-size:clamp(1.3rem,3vw,1.8rem);font-weight:600;line-height:1.25;text-align:center;padding:1.5rem;border-radius:2px}
 .program ul,.plain-list{padding-left:1.1rem;margin:0 0 1em}
 .program li,.plain-list li{margin-bottom:.35rem}
 
@@ -229,13 +225,13 @@ input:focus,select:focus,textarea:focus{outline:3px solid var(--gold);outline-of
 
   <div class="band">
     <div class="wrap two">
-      <div class="ph">
+      <div>
         <h2>Our mission</h2>
-        <p>[Mission statement placeholder.] To uplift Jacksonville's young people through academic enrichment, leadership development, and the performing arts, one student at a time.</p>
+        <p>To uplift Jacksonville's young people through academic enrichment, leadership development, and the performing arts, one student at a time.</p>
       </div>
-      <div class="ph">
+      <div>
         <h2>Our vision</h2>
-        <p>[Vision statement placeholder.] A Jacksonville where every student has the tools, mentors, and confidence to learn, lead, perform, and compete.</p>
+        <p>A Jacksonville where every student has the tools, mentors, and confidence to learn, lead, perform, and compete.</p>
       </div>
     </div>
   </div>
@@ -243,7 +239,7 @@ input:focus,select:focus,textarea:focus{outline:3px solid var(--gold);outline-of
   <div class="band mist">
     <div class="wrap">
       <h2>Four pillars, one purpose</h2>
-      <div class="pillars ph">
+      <div class="pillars">
         <div><h3>Learn</h3><p>Academic enrichment and language support that build confidence in the classroom.</p></div>
         <div><h3>Lead</h3><p>Mentorship, civic engagement, and service that grow student leadership.</p></div>
         <div><h3>Perform</h3><p>Step and the performing arts, grounded in discipline and teamwork.</p></div>
@@ -285,26 +281,27 @@ input:focus,select:focus,textarea:focus{outline:3px solid var(--gold);outline-of
 
   <div class="band">
     <div class="wrap two wide-left">
-      <div class="ph">
+      <div>
         <h2>Our founder</h2>
-        <p>[Founder name placeholder] is an Atlanta native who relocated to Jacksonville in 2022. Their upbringing was deeply shaped by the Civil Rights Movement, historic Black communities, competitive step, marching band, HBCU experiences, and mentorship.</p>
-        <p>The historical connections between Atlanta and Jacksonville, particularly through James Weldon Johnson, have also influenced the educational philosophy behind Fluent Futures Jax.</p>
-        <p>While these experiences shaped the vision, the organization remains centered on Jacksonville, its young people, and the communities it hopes to serve.</p>
-        <p><em>[Final founder biography to replace this text.]</em></p>
+        <p>Fluent Futures Jax was founded by an Atlanta native who moved to Jacksonville in 2022. Growing up in Atlanta, our founder was shaped by the Civil Rights Movement, by historic Black communities, and by competitive step, marching band, HBCU experiences, and the mentors who showed up along the way.</p>
+        <p>Those experiences taught a simple lesson: when young people are given structure, high expectations, and people who believe in them, they rise. Fluent Futures Jax exists to offer that same foundation to students here in Jacksonville.</p>
+        <p>The historical ties between Atlanta and Jacksonville, especially through James Weldon Johnson, a Jacksonville native educated at Atlanta University, also inform our educational philosophy. Even so, this organization stays centered on Jacksonville, its young people, and the communities we hope to serve.</p>
       </div>
-      <div class="photo-slot">Founder photo placeholder</div>
+      <div class="photo-slot">Atlanta roots.<br>Jacksonville purpose.</div>
     </div>
   </div>
 
   <div class="band mist">
     <div class="wrap two">
-      <div class="ph">
+      <div>
         <h2>Educational philosophy</h2>
-        <p>[Educational philosophy placeholder.] Students grow when learning, leadership, performance, and competition work together, supported by mentors who look like them and believe in them.</p>
+        <p>We believe students grow when learning, leadership, performance, and competition work together. A student who practices a step routine, researches a country for Model UN, and builds English skills in the same organization learns that discipline carries over from one place to the next.</p>
+        <p>Mentorship, HBCU exposure, cultural enrichment, and service to the community surround every program, so students can see where their effort can lead.</p>
       </div>
-      <div class="ph">
+      <div>
         <h2>Our history</h2>
-        <p>[Organizational history placeholder.] Add the founding year, the first program, and the milestones that brought Fluent Futures Jax to where it is today.</p>
+        <p>Fluent Futures Jax grew out of our founder's move to Jacksonville in 2022 and a simple question: what would it look like to bring the mentorship, discipline, and pride that shaped them to the students here?</p>
+        <p>The answer became three signature programs, a four-pillar approach of Learn. Lead. Perform. Compete., and a commitment to uplifting Jacksonville, one student at a time.</p>
       </div>
     </div>
   </div>
@@ -312,9 +309,9 @@ input:focus,select:focus,textarea:focus{outline:3px solid var(--gold);outline-of
   <div class="band">
     <div class="wrap">
       <h2>Our mission and vision</h2>
-      <div class="two ph">
-        <p><strong>Mission.</strong> [Mission statement placeholder.]</p>
-        <p><strong>Vision.</strong> [Vision statement placeholder.]</p>
+      <div class="two">
+        <p><strong>Mission.</strong> To uplift Jacksonville's young people through academic enrichment, leadership development, and the performing arts, one student at a time.</p>
+        <p><strong>Vision.</strong> A Jacksonville where every student has the tools, mentors, and confidence to learn, lead, perform, and compete.</p>
       </div>
     </div>
   </div>
@@ -325,32 +322,32 @@ input:focus,select:focus,textarea:focus{outline:3px solid var(--gold);outline-of
   <div class="page-head"><div class="wrap"><h1>Our programs</h1><p>Three signature programs, four pillars: Learn. Lead. Perform. Compete.</p></div></div>
   <div class="band">
     <div class="wrap">
-      <article class="program ph">
+      <article class="program">
         <div>
           <h2>Fluent Motion Step &amp; Performance Company</h2>
-          <p>[Program description placeholder.] Students train in step and performance, building rhythm, discipline, and teamwork for community showcases and competition.</p>
-          <ul><li>Ages: [placeholder]</li><li>Schedule: [placeholder]</li><li>Location: [placeholder]</li></ul>
+          <p>Fluent Motion is our step and performance company. Students learn the art of step, from rhythm and precision to stage presence, and discover how much a team can accomplish when everyone moves as one. The tradition runs deep in HBCU and Black community culture, and our students carry it forward in community showcases and competition.</p>
+          <ul><li>Who it is for: Jacksonville students</li><li>What students build: rhythm, discipline, teamwork, and stage confidence</li><li>Schedule and location: shared with families who express interest</li></ul>
           <a class="btn navy" href="#/contact">Express interest</a>
         </div>
-        <div class="photo-slot">Program photo placeholder</div>
+        <div class="photo-slot">Step &amp;<br>Performance</div>
       </article>
-      <article class="program flip ph">
+      <article class="program flip">
         <div>
           <h2>Global Scholars Model United Nations</h2>
-          <p>[Program description placeholder.] Students research world issues, practice public speaking and diplomacy, and take part in Model UN conferences.</p>
-          <ul><li>Ages: [placeholder]</li><li>Schedule: [placeholder]</li><li>Location: [placeholder]</li></ul>
+          <p>In Global Scholars, students take on the role of diplomats. They represent countries, research global issues, write position papers, and debate and negotiate solutions with their peers. Along the way they build public speaking, critical thinking, and the confidence to take part in Model UN conferences.</p>
+          <ul><li>Who it is for: Jacksonville students</li><li>What students build: public speaking, research, diplomacy, and global awareness</li><li>Schedule and location: shared with families who express interest</li></ul>
           <a class="btn navy" href="#/contact">Express interest</a>
         </div>
-        <div class="photo-slot">Program photo placeholder</div>
+        <div class="photo-slot">Model United<br>Nations</div>
       </article>
-      <article class="program ph">
+      <article class="program">
         <div>
           <h2>ESOL &amp; Academic Enrichment</h2>
-          <p>[Program description placeholder.] English language support and academic enrichment that help students build skills and confidence in school.</p>
-          <ul><li>Ages: [placeholder]</li><li>Schedule: [placeholder]</li><li>Location: [placeholder]</li></ul>
+          <p>ESOL &amp; Academic Enrichment supports students who are learning English as well as students who want a stronger academic foundation. Through reading, writing, speaking, and study skills, students build the language and confidence they need to succeed in school and in the community.</p>
+          <ul><li>Who it is for: Jacksonville students</li><li>What students build: English skills, study habits, and academic confidence</li><li>Schedule and location: shared with families who express interest</li></ul>
           <a class="btn navy" href="#/contact">Express interest</a>
         </div>
-        <div class="photo-slot">Program photo placeholder</div>
+        <div class="photo-slot">ESOL &amp;<br>Academics</div>
       </article>
     </div>
   </div>
@@ -363,7 +360,7 @@ input:focus,select:focus,textarea:focus{outline:3px solid var(--gold);outline-of
   <div class="band">
     <div class="wrap">
       <h2>How we show up</h2>
-      <div class="focus-grid ph">
+      <div class="focus-grid">
         <div><h3>Mentorship</h3><p>Students are paired with mentors who guide and encourage them.</p></div>
         <div><h3>HBCU exposure</h3><p>Students see what college can look like and where it can lead.</p></div>
         <div><h3>Educational excursions</h3><p>Trips that bring classroom learning to life.</p></div>
@@ -376,12 +373,12 @@ input:focus,select:focus,textarea:focus{outline:3px solid var(--gold);outline-of
 
   <div class="band mist">
     <div class="wrap two">
-      <div class="ph">
+      <div>
         <h2>Partner with us</h2>
-        <p>[Partnership placeholder.] We welcome schools, churches, businesses, colleges, and community organizations who want to invest in Jacksonville's young people.</p>
+        <p>We welcome schools, churches, businesses, colleges, and community organizations who want to invest in Jacksonville's young people. Whether you can give time, space, funding, or expertise, there is a place for you in this work.</p>
         <div class="btn-row"><a class="btn navy" href="#/contact">Start a conversation</a></div>
       </div>
-      <div class="photo-slot">Partner logos placeholder</div>
+      <div><h3>Ways to partner</h3><ul class="plain-list"><li>Sponsor a program, performance, or competition</li><li>Host or support an educational excursion</li><li>Serve as a mentor or guest speaker</li><li>Offer space, supplies, or services</li></ul></div>
     </div>
   </div>
 
@@ -424,12 +421,11 @@ input:focus,select:focus,textarea:focus{outline:3px solid var(--gold);outline-of
         </form>
       </div>
       <aside>
-        <div class="contact-card ph">
+        <div class="contact-card">
           <h2>Get in touch</h2>
-          <p>Email: [email placeholder]</p>
-          <p>Phone: [phone placeholder]</p>
           <p>Jacksonville, Florida</p>
-          <p>Instagram: [link placeholder]<br>Facebook: [link placeholder]</p>
+          <p>The quickest way to reach us is the form. We read every submission and reply by email.</p>
+          <div id="contact-lines"></div>
         </div>
         <h3 style="margin-top:2.2rem">Downloads</h3>
         <ul class="downloads" id="docs-list"><li class="empty">Documents will appear here.</li></ul>
@@ -464,10 +460,9 @@ input:focus,select:focus,textarea:focus{outline:3px solid var(--gold);outline-of
       </div>
       <div>
         <h3>Connect</h3>
-        <ul>
-          <li>Email: [placeholder]</li>
-          <li><a href="#/contact">Instagram</a> (link placeholder)</li>
-          <li><a href="#/contact">Facebook</a> (link placeholder)</li>
+        <ul id="foot-list">
+          <li>Jacksonville, Florida</li>
+          <li><a href="#/contact">Send us a message</a></li>
         </ul>
       </div>
     </div>
@@ -533,6 +528,9 @@ const firebaseConfig = {
   appId: "1:626832526838:web:2793b8a74f5ca5ec6a0bd7"
 };
 const ADMIN_EMAILS = ["oladejiridwanopeyemi@gmail.com"];
+
+/* Optional public contact details. Fill in any you want shown on the Contact page and footer. */
+const CONTACT = { email: "", phone: "", instagram: "", facebook: "" };
 /* ============================================================ */
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -549,6 +547,21 @@ const h = (tag, attrs = {}, ...kids) => {
 };
 const safeUrl = u => /^https?:\/\//i.test(u) ? u : null;
 const fmtDate = ts => { try { return ts.toDate().toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }); } catch { return ""; } };
+
+function renderContact() {
+  const rows = [];
+  if (CONTACT.email) rows.push({ label: "Email", text: CONTACT.email, href: "mailto:" + CONTACT.email });
+  if (CONTACT.phone) rows.push({ label: "Phone", text: CONTACT.phone, href: "tel:" + CONTACT.phone.replace(/[^\d+]/g, "") });
+  if (safeUrl(CONTACT.instagram)) rows.push({ label: "", text: "Instagram", href: CONTACT.instagram });
+  if (safeUrl(CONTACT.facebook)) rows.push({ label: "", text: "Facebook", href: CONTACT.facebook });
+  const box = $("#contact-lines"), foot = $("#foot-list");
+  rows.forEach(r => {
+    const link = () => h("a", r.href.startsWith("http") ? { href: r.href, target: "_blank", rel: "noopener" } : { href: r.href }, r.text);
+    box.append(h("p", {}, r.label ? r.label + ": " : "", link()));
+    foot.append(h("li", {}, link()));
+  });
+}
+renderContact();
 
 let db = null, auth = null;
 if (configured) {
@@ -604,7 +617,7 @@ async function loadNews() {
   const box = $("#news-list");
   if (!configured) {
     box.replaceChildren(
-      newsCard({ title: "Sample announcement", when: "Date placeholder", body: "Announcements posted from the admin panel will appear here." }));
+      newsCard({ title: "Sample announcement", when: "Date to be announced", body: "Announcements posted from the admin panel will appear here." }));
     return;
   }
   try {
@@ -670,6 +683,16 @@ $("#interest-form").addEventListener("submit", async e => {
 const root = $("#admin-root");
 let tab = "news";
 
+function signInHelp(e) {
+  const c = (e && e.code) || "";
+  if (location.protocol === "file:") return "Sign-in does not work when the page is opened from a file on your computer. Open the published website address instead.";
+  if (c === "auth/unauthorized-domain") return "Firebase does not trust this address yet. In Firebase go to Authentication > Settings > Authorized domains and add: " + location.hostname;
+  if (c === "auth/operation-not-allowed") return "Google sign-in is not turned on. In Firebase go to Authentication > Sign-in method and enable Google.";
+  if (c === "auth/popup-blocked") return "Your browser blocked the sign-in window. Allow pop-ups for this site and try again.";
+  if (c === "auth/popup-closed-by-user" || c === "auth/cancelled-popup-request") return "The sign-in window was closed before it finished. Try again.";
+  return "Sign-in failed (" + (c || "unknown error") + ").";
+}
+
 function renderAdminLoggedOut(msg) {
   root.replaceChildren(
     h("div", { class: "panel" },
@@ -677,7 +700,7 @@ function renderAdminLoggedOut(msg) {
       h("p", {}, "Use the Google account that has been approved for this site."),
       msg ? h("p", { class: "status err" }, msg) : null,
       h("button", { class: "btn navy", type: "button", onclick: async () => {
-        try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (e) { renderAdminLoggedOut("Sign-in was cancelled or blocked. If this keeps happening, the site's address may need to be added in Firebase > Authentication > Settings > Authorized domains."); }
+        try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (e) { renderAdminLoggedOut(signInHelp(e)); }
       } }, "Sign in with Google")));
 }
 
@@ -836,7 +859,7 @@ if (!configured) {
     if (!user) { currentUser = null; renderAdminLoggedOut(); return; }
     if (!ADMIN_EMAILS.map(x => x.toLowerCase()).includes((user.email || "").toLowerCase())) {
       currentUser = null;
-      signOut(auth).then(() => renderAdminLoggedOut("That Google account is not approved for this site."));
+      const bad = user.email; signOut(auth).then(() => renderAdminLoggedOut("The Google account " + bad + " is not approved for this site. Sign in with an approved account."));
       return;
     }
     currentUser = user; renderAdminTab();
