@@ -5184,9 +5184,10 @@ function viewINVProfile(id){
       :'<div class="tbl-wrap"><table><thead><tr><th>#</th><th>Amount</th><th>Date</th><th>Method</th><th>Note</th><th>By</th></tr></thead><tbody>'+
       (i.payments||[]).map((p,idx)=>'<tr><td>'+(idx+1)+'</td><td style="color:#7c3aed;font-weight:700">&#8358;'+fmt(p.amount)+'</td><td>'+p.date+'</td><td>'+(p.method||'--')+'</td><td>'+(p.note||'--')+'</td><td>'+(p.recordedBy||'--')+'</td></tr>').join('')+
       '</tbody></table></div>')+
+    invPrincipalSectionHTML(i)+
     '<div class="btn-row no-print">'+
     '<button class="btn btn-navy" onclick="addAnotherInvestmentFor(\''+i.id+'\')">&#10133; Add Another Investment</button>'+
-    '<button class="btn btn-purple" onclick="openINVPayModal(\''+i.id+'\');closeModal(\'inv-profile-modal\')">&#128176; Record Monthly Interest</button>'+
+    '<button class="btn btn-purple" onclick="openINVPayModal(\''+i.id+'\');closeModal(\'inv-profile-modal\')">&#128176; Pay Interest / Principal</button>'+
     (i.status==='Active'?'<button class="btn btn-amber" onclick="openEarlyWithdrawal(\''+i.id+'\')">&#9888; Early Withdrawal (10% Penalty)</button>':'')+
     '<button class="btn btn-out btn-sm" onclick="printINVAgreement()">&#128424; Print Statement</button>'+
     '</div>';
@@ -5554,7 +5555,8 @@ function buildMonthlySchedule(startdate, totalMonths, monthlyInterest, principal
 // Count paid months
 function invMonthsPaid(inv){ return (inv.monthlySchedule||[]).filter(m=>m.paid).length; }
 function invMonthsUnpaid(inv){ return (inv.monthlySchedule||[]).filter(m=>!m.paid).length; }
-function invTotalInterestPaid(inv){ return (inv.monthlySchedule||[]).filter(m=>m.paid).reduce((s,m)=>s+(parseFloat(m.amount)||0),0); }
+function invMonthAmt(m){ return m.interestPortion!=null?(parseFloat(m.interestPortion)||0):(parseFloat(m.amount)||0); }
+function invTotalInterestPaid(inv){ return (inv.monthlySchedule||[]).filter(m=>m.paid).reduce((s,m)=>s+invMonthAmt(m),0); }
 function invIsInterestOverdue(inv){
   if(!inv.monthlySchedule) return false;
   const today=new Date().toISOString().slice(0,10);
@@ -5640,7 +5642,7 @@ function renderMonthlyScheduleHTML(inv){
     html+='<div class="mi-month-row '+rowCls+'">'+
       '<div class="mi-month-num '+numCls+'">'+m.month+'</div>'+
       '<div class="mi-month-info">'+
-        '<strong>Month '+m.month+' &mdash; &#8358;'+fmt(m.amount)+'</strong>'+
+        '<strong>Month '+m.month+' &mdash; &#8358;'+fmt(invMonthAmt(m))+' interest</strong>'+
         '<span>Due: '+dueDisplay+(paidDisplay?' &bull; Paid: '+paidDisplay:'')+'</span>'+
       '</div>'+
       actionHtml+
@@ -5679,12 +5681,64 @@ function markMonthPaid(invId, monthIdx){
   schedule[monthIdx]={...schedule[monthIdx],paid:true,paidDate:today,paidBy:currentSession.username||'admin'};
   // Check if all months paid → auto complete
   const allPaid=schedule.every(m=>m.paid);
-  const newStatus=allPaid?'Completed':inv.status;
+  const principalDone=!!(inv.principalPaid&&inv.principalPaid.paid);
+  const newStatus=(allPaid&&principalDone)?'Completed':inv.status;
   db.collection('investments').doc(invId).set({monthlySchedule:schedule,status:newStatus},{merge:true}).then(()=>{
     inv.monthlySchedule=schedule;inv.status=newStatus;
     renderINV(scopedINV());renderINVStats();renderDashModules();
-    toast('Month '+(monthIdx+1)+' interest marked as paid!'+(allPaid?' All months paid — Completed!':''),'s');
+    toast('Month '+(monthIdx+1)+' interest marked as paid!'+(allPaid&&!principalDone?' All interest paid — now mark the principal as paid.':''),'s');
     viewINVProfile(invId); // refresh modal
+  }).catch(e=>toast('Error: '+e.message,'e'));
+}
+
+
+// ===== PRINCIPAL (INVESTMENT MONEY) PAYOUT =====
+function invPrincipalSectionHTML(i,ctx){
+  ctx=ctx||'pm';
+  const amt=parseFloat(i.amount)||0,pp=i.principalPaid;
+  const unpaid=invMonthsUnpaid(i),hasSched=(i.monthlySchedule||[]).length>0;
+  let h='<div class="sh" style="margin-top:14px">&#128181; Principal (Investment Money) Payout</div>'+
+    '<div style="background:var(--bg);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:.82rem">Principal to return: <strong style="color:#7c3aed">&#8358;'+fmt(amt)+'</strong></div>';
+  if(pp&&pp.paid){
+    h+='<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;padding:10px 12px;font-size:.82rem;color:#065f46">&#10003; <strong>Principal paid</strong> on '+(pp.date||'--')+(pp.method?' &bull; '+pp.method:'')+' &bull; by '+(pp.by||'--')+(pp.note?'<br/>Note: '+pp.note:'')+'</div>';
+    if(currentSession.role==='admin')h+='<div class="no-print" style="margin-top:6px"><button class="btn btn-out btn-sm" onclick="undoINVPrincipal(\''+i.id+'\')">Undo principal payout (admin)</button></div>';
+  }else if(i.status==='Withdrawn'){
+    h+='<p style="font-size:.8rem;color:var(--muted)">This investment was withdrawn early; the principal was settled through the early withdrawal.</p>';
+  }else if(!hasSched||unpaid>0){
+    h+='<p style="font-size:.8rem;color:var(--amber)">Pay all monthly interest first ('+unpaid+' month(s) remaining), then the principal can be marked as paid.</p>';
+  }else{
+    h+='<div class="form-grid no-print">'+
+      '<div class="fg"><label>Date Paid *</label><input type="date" id="inv-pr-date-'+ctx+'" value="'+td()+'"/></div>'+
+      '<div class="fg"><label>Method</label><select id="inv-pr-mth-'+ctx+'"><option value="">Select</option><option>Cash</option><option>Bank Transfer</option><option>POS</option></select></div>'+
+      '<div class="fg"><label>Note</label><input id="inv-pr-note-'+ctx+'" placeholder="Optional note"/></div></div>'+
+      '<button class="btn btn-purple no-print" style="width:100%;justify-content:center;padding:11px;margin-top:8px" onclick="markINVPrincipalPaid(\''+i.id+'\',\''+ctx+'\')">&#10003; Mark Principal Paid (&#8358;'+fmt(amt)+')</button>';
+  }
+  return h;
+}
+function markINVPrincipalPaid(invId,ctx){
+  ctx=ctx||'pm';
+  const inv=allInvestments.find(x=>x.id===invId);if(!inv)return;
+  if(currentSession.role==='staff'&&inv.branchId!==currentSession.branchId){toast('Access denied','e');return}
+  if(inv.principalPaid&&inv.principalPaid.paid){toast('Principal already marked as paid','w');return}
+  if((inv.monthlySchedule||[]).length===0||invMonthsUnpaid(inv)>0){toast('Pay all monthly interest first','w');return}
+  const date=v('inv-pr-date-'+ctx);if(!date){toast('Select the date paid','e');return}
+  if(!confirm('Confirm that the principal of ₦'+fmt(parseFloat(inv.amount)||0)+' has been paid to '+inv.name+'?'))return;
+  const rec={paid:true,amount:parseFloat(inv.amount)||0,date,method:v('inv-pr-mth-'+ctx),note:v('inv-pr-note-'+ctx),by:currentSession.username||'admin',at:new Date().toISOString()};
+  db.collection('investments').doc(invId).set({principalPaid:rec,status:'Completed'},{merge:true}).then(()=>{
+    inv.principalPaid=rec;inv.status='Completed';
+    renderINV(scopedINV());renderINVStats();renderDashModules();
+    toast('Principal marked as paid. Investment Completed!','s');
+    closeModal('inv-pay-modal');viewINVProfile(invId);
+  }).catch(e=>toast('Error: '+e.message,'e'));
+}
+function undoINVPrincipal(invId){
+  if(currentSession.role!=='admin'){toast('Admin only','e');return}
+  const inv=allInvestments.find(x=>x.id===invId);if(!inv)return;
+  if(!confirm('Undo the principal payout record for this investment?'))return;
+  db.collection('investments').doc(invId).set({principalPaid:null,status:'Active'},{merge:true}).then(()=>{
+    inv.principalPaid=null;inv.status='Active';
+    renderINV(scopedINV());renderINVStats();renderDashModules();
+    toast('Principal payout undone.','w');viewINVProfile(invId);
   }).catch(e=>toast('Error: '+e.message,'e'));
 }
 
@@ -5713,7 +5767,7 @@ function openINVPayModal(id){
     '<div style="background:#fff;border-radius:8px;padding:8px;border:1px solid var(--border)"><div style="font-size:.9rem;font-weight:800;color:'+( unpaidCount>0?'var(--red)':'var(--green)')+'">'+unpaidCount+'</div><div style="font-size:.62rem;color:var(--muted);text-transform:uppercase">Months Pending</div></div>'+
     '</div></div>'+
     '<div class="sh" style="margin-top:4px">Monthly Schedule — Click to Mark Paid</div>'+
-    renderMonthlyScheduleHTML(i);
+    renderMonthlyScheduleHTML(i)+invPrincipalSectionHTML(i,'pay');
   showModal('inv-pay-modal');
 }
 
@@ -8729,9 +8783,21 @@ async function agSyncMine(){
     let created=0,n=0;
     for(const [arr,k] of sets)for(const r of (arr||[])){const o=await agProcess(k,r.id,r,r);created+=o.created;n++}
     hideLoader();
-    const off=Object.keys(st.services||{}).filter(k=>!st.services[k].enabled).map(k=>AG_SERVICES[k]&&AG_SERVICES[k].label).filter(Boolean);
-    toast(created?created+' missing commission(s) added.':'No missing commissions found'+(off.length?'. Not enabled by admin: '+off.join(', '):'.'),created?'s':'i');
     agMy=null;agRenderCommissions();
+    if(created){toast(created+' missing commission(s) added.','s');return}
+    const lines=[];
+    for(const [arr,k] of sets){
+      if(!(arr||[]).length)continue;
+      const r=st.services[k]||{},lb=AG_SERVICES[k].label,n=arr.length;
+      const unlinked=arr.filter(x=>!x.customerId||!agOwns(x.customerId)).length;
+      if(!r.enabled)lines.push(lb+' ('+n+'): commission is switched OFF in admin settings.');
+      else if(!(Number(r.value)>0))lines.push(lb+' ('+n+'): commission rate/amount is 0.');
+      else if(r.trigger==='on_completion')lines.push(lb+' ('+n+'): pays only when the record is marked Completed'+(k==='investment'?' (after the principal is paid).':'.'));
+      else if(r.effectiveFrom)lines.push(lb+' ('+n+'): pays only for activity after '+agDate(r.effectiveFrom)+'.');
+      else lines.push(lb+' ('+n+'): rule is on and nothing is missing.');
+      if(unlinked)lines.push('   '+unlinked+' record(s) are not linked to one of your registered customers, so they earn nothing.');
+    }
+    alert('No new commission was due.\n\n'+(lines.join('\n')||'You have no service records yet.'));
   }catch(e){hideLoader();agErr(e)}
 }
 function agQuickService(sel){
