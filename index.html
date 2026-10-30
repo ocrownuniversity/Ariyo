@@ -421,6 +421,16 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
     <button class="nb agent-nav" onclick="showPage('agent-customers')">&#128100; My Customers</button>
     <button class="nb agent-nav" onclick="showPage('agent-commissions')">&#128202; Commissions</button>
     <button class="nb agent-nav" onclick="showPage('agent-withdrawals')">&#127974; Withdrawals</button>
+    <button class="nb agent-nav" onclick="showPage('new-application')">&#43; New Loan</button>
+    <button class="nb agent-nav" onclick="showPage('applicants')">&#128101; Borrowers</button>
+    <button class="nb agent-nav" onclick="showPage('repayments')">&#128176; Repayments</button>
+    <button class="nb agent-nav" onclick="showPage('easybuy')">&#128722; EasyBuy</button>
+    <button class="nb agent-nav" onclick="showPage('investment')">&#128200; Investment</button>
+    <button class="nb agent-nav" onclick="showPage('contribution')">&#128021; Contributions</button>
+    <button class="nb agent-nav" onclick="showPage('salarycontribution')">&#128188; Salary Earners</button>
+    <button class="nb agent-nav" onclick="showPage('fixeddeposit')">&#127974; Fixed Deposit</button>
+    <button class="nb agent-nav" onclick="showPage('ces')">&#127891; Education Support</button>
+    <button class="nb agent-nav" onclick="showPage('calculator')">&#129518; Calculator</button>
     <button class="nb" id="nav-ces" onclick="showPage('ces')" style="display:none">&#127891; Children Education Support</button>
     <button class="nb" id="nav-branches" onclick="showPage('branches')" style="display:none">&#x1F3E6; Branches</button>
     <button class="nb" id="nav-users" onclick="showPage('users')" style="display:none">&#x1F464; Staff</button>
@@ -2483,7 +2493,7 @@ function getMaturityISO(appdate,dn,du){
 
 // ===== SCOPED LOANS (branch filter) =====
 function getScopedLoans(){
-  if(currentSession.role === 'admin') return allLoans;
+  if(currentSession.role === 'admin' || currentSession.role === 'agent') return allLoans;
   if(currentSession.role === 'manager') return allLoans.filter(l => l.branchId === currentSession.branchId);
   // staff: only loans they created
   return allLoans.filter(l => l.branchId === currentSession.branchId && (l.createdBy === currentSession.username || l.createdBy === currentSession.userId));
@@ -2599,7 +2609,7 @@ function startApp(){
 function doLogout(){
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('app').style.display='none';
-  document.body.classList.remove('agent-mode');agentSession=null;agMy=null;
+  document.body.classList.remove('agent-mode');agentSession=null;agMy=null;agWsAt=0;allCustomers=[];allLoans=[];allEasyBuys=[];allInvestments=[];allFDs=[];allContributions=[];allSalaryContributions=[];allCES=[];
   currentSession={role:null,userId:null,username:null,branchId:null,branchName:null,name:null};
   pinBuf='';updDots();
   switchLoginTab('admin');
@@ -2611,9 +2621,10 @@ function doLogout(){
 // ===== NAV =====
 function showPage(id){
   if(currentSession.role==='agent'){
-    const allowedAgent=['agent-home','agent-customers','agent-commissions','agent-withdrawals','new-customer'];
+    const allowedAgent=['agent-home','agent-customers','agent-commissions','agent-withdrawals','new-customer'].concat(AG_WS_PAGES);
     if(id==='customers')id='agent-customers';
     if(!allowedAgent.includes(id))id='agent-home';
+    if(AG_WS_PAGES.includes(id)&&!agWsFresh()){agEnsureWs().then(()=>showPage(id)).catch(agErr);return}
   } else if(String(id).indexOf('agent-')===0){ id='dashboard'; }
   if(id==='agents' && currentSession.role!=='admin'){ toast('Super Admin only','e'); id='dashboard'; }
   // Guard: branches = admin only; users = admin + manager
@@ -2629,7 +2640,7 @@ function showPage(id){
     toast('Access denied: Admin/Manager only','e');
     id='dashboard';
   }
-  if((id==='ces'||id==='new-ces'||id==='ces-reports'||id==='ces-settings') && currentSession.role!=='admin' && currentSession.role!=='manager'){
+  if((id==='ces'||id==='new-ces'||id==='ces-reports'||id==='ces-settings') && currentSession.role!=='admin' && currentSession.role!=='manager' && currentSession.role!=='agent'){
     toast('Access denied: Admin/Manager only','e');
     id='dashboard';
   }
@@ -4182,12 +4193,12 @@ let allEasyBuys = [], allInvestments = [], ebCurId = null, invCurId = null;
 
 // Scoped helpers
 function scopedEB(){
-  if(currentSession.role==='admin') return allEasyBuys;
+  if(currentSession.role==='admin'||currentSession.role==='agent') return allEasyBuys;
   if(currentSession.role==='manager') return allEasyBuys.filter(e=>e.branchId===currentSession.branchId);
   return allEasyBuys.filter(e=>e.branchId===currentSession.branchId && (e.createdBy===currentSession.username||e.createdBy===currentSession.userId));
 }
 function scopedINV(){
-  if(currentSession.role==='admin') return allInvestments;
+  if(currentSession.role==='admin'||currentSession.role==='agent') return allInvestments;
   if(currentSession.role==='manager') return allInvestments.filter(i=>i.branchId===currentSession.branchId);
   return allInvestments.filter(i=>i.branchId===currentSession.branchId && (i.createdBy===currentSession.username||i.createdBy===currentSession.userId));
 }
@@ -5769,7 +5780,7 @@ function showInvCode(inv){
 var allFDs = [];
 
 function scopedFD(){
-  if(currentSession.role==='admin') return allFDs;
+  if(currentSession.role==='admin'||currentSession.role==='agent') return allFDs;
   if(currentSession.role==='manager') return allFDs.filter(function(f){return f.branchId===currentSession.branchId;});
   return allFDs.filter(function(f){return f.branchId===currentSession.branchId&&(f.createdBy===currentSession.username||f.createdBy===currentSession.userId);});
 }
@@ -6253,7 +6264,7 @@ let allContributions=[], allAuditLogs=[], ctbCurId=null, ctbLastReport=null;
 const CTB_BLANK="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='55%25' font-size='28' text-anchor='middle' fill='%2394a3b8'%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E";
 
 function scopedCTB(){
-  if(currentSession.role==='admin') return allContributions;
+  if(currentSession.role==='admin'||currentSession.role==='agent') return allContributions;
   if(currentSession.role==='manager') return allContributions.filter(c=>c.branchId===currentSession.branchId);
   return allContributions.filter(c=>c.branchId===currentSession.branchId && (c.createdBy===currentSession.username||c.createdBy===currentSession.userId));
 }
@@ -6748,7 +6759,7 @@ let allSalaryContributions=[], salCurId=null, salLastReport=null;
 const SAL_BLANK="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='55%25' font-size='28' text-anchor='middle' fill='%2394a3b8'%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E";
 
 function scopedSAL(){
-  if(currentSession.role==='admin') return allSalaryContributions;
+  if(currentSession.role==='admin'||currentSession.role==='agent') return allSalaryContributions;
   if(currentSession.role==='manager') return allSalaryContributions.filter(c=>c.branchId===currentSession.branchId);
   return allSalaryContributions.filter(c=>c.branchId===currentSession.branchId && (c.createdBy===currentSession.username||c.createdBy===currentSession.userId));
 }
@@ -7371,7 +7382,7 @@ function cesCalcLive(){
 
 // ----- Scope / list / search -----
 function scopedCES(){
-  if(currentSession.role==='admin') return allCES;
+  if(currentSession.role==='admin'||currentSession.role==='agent') return allCES;
   return allCES.filter(c=>c.branchId===currentSession.branchId);
 }
 function cesPaidTotal(c){ return (c.payments||[]).reduce((s,p)=>s+(parseFloat(p.amount)||0),0); }
@@ -8157,7 +8168,7 @@ async function agSyncRecord(k,id,deleted){
   agStatusSeen[key]=after.status;
 }
 function agQueueSync(col,id,deleted){
-  if(!currentSession.role||currentSession.role==='agent')return;
+  if(!currentSession.role)return;
   const k=AG_COL[col];if(!k)return;
   const key=k+'_'+id;
   clearTimeout(agTimers[key]);
@@ -8482,7 +8493,7 @@ async function agentLoginUI(){
     }
     if(a.data().status!=='active'){err.textContent='Your account is '+a.data().status+'. Contact the administrator.';return}
     await aref.set({failed:0,lockedUntil:0},{merge:true});
-    currentSession={role:'agent',userId:a.id,username:u,branchId:null,branchName:null,name:a.data().name};
+    currentSession={role:'agent',userId:a.id,username:'agent:'+u,branchId:null,branchName:null,name:a.data().name};
     agentSession={id:a.id,name:a.data().name,username:u};
     document.getElementById('al-pass').value='';
     startAgentApp(!!au.mustChange);
@@ -8496,7 +8507,7 @@ function startAgentApp(mustChange){
   document.getElementById('role-pill').textContent='AGENT';
   const bb=document.getElementById('branch-badge');if(bb)bb.style.display='none';
   document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
-  agMy=null;
+  agMy=null;agWsAt=0;
   showPage('agent-home');
   if(mustChange){toast('Please change your temporary password.','w');agOpenPw()}
 }
@@ -8537,6 +8548,7 @@ async function agEstimatePending(){
 const agCommTable=(rows,empty)=>agTable(['Date','Customer','Service','Ref','Event','Base','Rate','Commission','Status'],rows.map(r=>'<tr><td>'+agDate(r.createdAt)+'</td><td>'+agEsc(r.customerName)+'</td><td>'+agEsc(r.serviceLabel)+'</td><td>'+agEsc(r.recordRef)+'</td><td>'+agEsc(r.eventType)+'</td><td>&#8358;'+fmt(r.baseAmount)+'</td><td>'+agRuleText(r.rule)+'</td><td><strong>&#8358;'+fmt(r.amount)+'</strong></td><td>'+agBadge(r.status)+'</td></tr>'),empty);
 const agWdTable=(rows,empty)=>agTable(['Requested','Amount','Bank','Status','Payment Ref','Note'],rows.map(w=>'<tr><td>'+agDate(w.requestedAt)+'</td><td><strong>&#8358;'+fmt(w.amount)+'</strong></td><td>'+agEsc(w.bankName)+' &bull; '+agEsc(w.accountNumber)+'</td><td>'+agBadge(w.status)+'</td><td>'+agEsc(w.paymentRef||'--')+(w.paidDate?'<div style="font-size:.62rem;color:var(--muted)">'+agEsc(w.paidDate)+'</div>':'')+'</td><td>'+agEsc(w.reviewNote||'')+'</td></tr>'),empty);
 async function agRenderHome(){
+  agWsAt=0;
   document.getElementById('ag-welcome').textContent='Welcome, '+agentSession.name;
   const d=await agLoadMine(true);if(!d)return;
   const pendW=d.withdrawals.filter(w=>w.status==='pending'||w.status==='approved');
@@ -8557,7 +8569,7 @@ function agFilterMyCustomers(){
   if(!agMy)return;
   const q=v('agm-srch').toLowerCase();
   const rows=agMy.customers.filter(c=>!q||(c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.regNo||'').toLowerCase().includes(q))
-    .map(c=>'<tr><td><strong>'+agEsc(c.regNo)+'</strong></td><td>'+agEsc(c.name)+'</td><td>'+agEsc(c.phone||'--')+'</td><td>'+agEsc(c.address||'--')+'</td><td>'+agDate(c.agentSince||c.createdAt)+'</td><td><button class="btn btn-out btn-sm" data-id="'+c.id+'" onclick="agShowActivity(this.dataset.id)">&#128202; Activity</button></td></tr>');
+    .map(c=>'<tr><td><strong>'+agEsc(c.regNo)+'</strong></td><td>'+agEsc(c.name)+'</td><td>'+agEsc(c.phone||'--')+'</td><td>'+agEsc(c.address||'--')+'</td><td>'+agDate(c.agentSince||c.createdAt)+'</td><td><div style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn btn-out btn-sm" data-id="'+c.id+'" onclick="agShowActivity(this.dataset.id)">&#128202; Activity</button><select style="min-width:110px" data-id="'+c.id+'" onchange="agQuickService(this)"><option value="">&#43; New service...</option><option value="f-|new-application">Loan</option><option value="eb-|new-easybuy">EasyBuy</option><option value="inv-|new-investment">Investment</option><option value="ctb-|new-contribution">Contribution</option><option value="sal-|new-salarycontribution">Salary Contribution</option><option value="fd-|new-fixeddeposit">Fixed Deposit</option><option value="ces-|new-ces">Education Support</option></select></div></td></tr>');
   document.getElementById('ag-cust-table').innerHTML=agTable(['Reg. No','Name','Phone','Address','Since','Services'],rows,'No customers yet. Tap "Register Customer" to add your first one.');
 }
 async function agShowActivity(custId){
@@ -8650,7 +8662,7 @@ async function agentRegisterCustomer(data){
     await db.collection('customer_agent_history').add({customerId:ref.id,customerName:c.name,fromAgentId:null,toAgentId:agentSession.id,toAgentName:agentSession.name,changedAt:at,changedBy:'registration'});
     logAudit('Customer Registered by Agent',c.name+' ('+regNo+') registered by agent '+agentSession.name+'.');
     toast('Customer registered! Reg. No: '+regNo,'s');
-    resetCustomerForm();agMy=null;showPage('agent-customers');
+    resetCustomerForm();agMy=null;agWsAt=0;showPage('agent-customers');
   }catch(e){agErr(e)}
 }
 async function custNextRegNo(){
@@ -8665,6 +8677,80 @@ async function custNextRegNo(){
     return 'CUS-'+String(n).padStart(5,'0');
   });
 }
+// =====================================================
+// ===== AGENT WORKSPACE: full service access for the agent's own customers =====
+// Agents can now open loans, EasyBuy, investments, contributions, salary
+// contributions, fixed deposits and education support for the customers
+// they registered. Only those customers' records are ever loaded.
+// =====================================================
+const AG_WS_PAGES=['new-application','applicants','repayments','calculator','easybuy','new-easybuy','investment','new-investment','contribution','new-contribution','ctb-reports','salarycontribution','new-salarycontribution','sal-reports','fixeddeposit','new-fixeddeposit','ces','new-ces','ces-reports'];
+const AG_CAN_DELETE=false; // agents cannot permanently delete financial records
+let agWsAt=0, agWsBusy=null;
+const agWsFresh=()=>agWsAt>0&&(Date.now()-agWsAt)<10*60*1000;
+const agOwns=id=>!!id&&allCustomers.some(c=>c.id===id&&c.agentId===(agentSession&&agentSession.id));
+async function agEnsureWs(){
+  if(!agentSession)return;
+  if(agWsBusy)return agWsBusy;
+  agWsBusy=(async()=>{
+    showLoader('Loading your customers\' records...');
+    try{
+      const me=agentSession.id;
+      const cs=await db.collection('customers').where('agentId','==',me).get();
+      allCustomers=cs.docs.map(d=>({id:d.id,...d.data()}));
+      const ids=allCustomers.map(c=>c.id),idSet=new Set(ids);
+      const phones=[...new Set(allCustomers.map(c=>c.phone).filter(Boolean))];
+      const by=async(col,field,vals)=>{const out=[];for(let i=0;i<vals.length;i+=10){const q=await db.collection(col).where(field,'in',vals.slice(i,i+10)).get();q.forEach(d=>out.push({id:d.id,...d.data()}))}return out};
+      const load=async col=>{
+        const m={};
+        (await by(col,'customerId',ids)).forEach(r=>{m[r.id]=r});
+        (await by(col,'phone',phones)).forEach(r=>{if(!r.customerId||idSet.has(r.customerId))m[r.id]=r});
+        return Object.values(m);
+      };
+      const [br,ln,eb,inv,fd,ctb,sal,ces]=await Promise.all([
+        db.collection('branches').get(),load('loans'),load('easybuy'),load('investments'),load('fixeddeposits'),load('contributions'),load('salarycontributions'),load('ceseducation')
+      ]);
+      allBranches=br.docs.map(d=>({id:d.id,...d.data()}));
+      allLoans=ln;allEasyBuys=eb;allInvestments=inv;allFDs=fd;allContributions=ctb;allSalaryContributions=sal;allCES=ces;
+      allUsers=[];allAuditLogs=[];
+      populateAllBranchDropdowns();populateEBINVBranchDropdowns();populateCTBBranchDropdowns();populateSALBranchDropdowns();populateCESBranchDropdowns();populateCustomerDropdowns();
+      cesLoadSettings();agPrimeStatusCache();populateAllYearDropdowns();
+      agWsAt=Date.now();
+    }finally{hideLoader();agWsBusy=null}
+  })();
+  return agWsBusy;
+}
+function agQuickService(sel){
+  const val=sel.value,id=sel.dataset.id;sel.value='';
+  if(!val)return;
+  const parts=val.split('|');
+  const c=agMy&&agMy.customers.find(x=>x.id===id);
+  if(!c||c.agentId!==agentSession.id){toast('This customer is not assigned to you','e');return}
+  const go=()=>{showPage(parts[1]);setTimeout(()=>{const pk=document.getElementById(parts[0]+'cust-pick');if(pk){pk.value=id;useRegisteredCustomer(parts[0],id)}},120)};
+  if(agWsFresh())go();else agEnsureWs().then(go).catch(agErr);
+}
+// Every new service record must belong to one of the agent's own customers.
+(function agInstallGuards(){
+  const submits={submitForm:'f-',submitEasyBuy:'eb-',submitInvestment:'inv-',submitFD:'fd-',submitContribution:'ctb-',submitSalaryContribution:'sal-',submitCESApplication:'ces-'};
+  Object.keys(submits).forEach(name=>{
+    const orig=window[name];if(typeof orig!=='function')return;
+    window[name]=function(e){
+      if(currentSession.role==='agent'){
+        const el=document.getElementById(submits[name]+'cust-id'),cid=el?el.value:'';
+        if(!agOwns(cid)){if(e&&e.preventDefault)e.preventDefault();toast('Select one of your registered customers first','e');return}
+      }
+      return orig.apply(this,arguments);
+    };
+  });
+  if(!AG_CAN_DELETE){
+    ['delApp','delPayment','delEB','delEBPayment','delINV','delINVPayment','delFD','delCTB','delCTBPayment','delSAL','delSALPayment','delCES','delCESPayment','delCustomer'].forEach(name=>{
+      const orig=window[name];if(typeof orig!=='function')return;
+      window[name]=function(){
+        if(currentSession.role==='agent'){toast('Agents cannot delete records. Ask the administrator.','e');return}
+        return orig.apply(this,arguments);
+      };
+    });
+  }
+})();
 // =====================================================
 // ===== STAFF AUDIT LOG =====
 // Every contributor registration, profile update, contribution entry,
