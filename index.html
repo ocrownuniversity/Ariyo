@@ -196,7 +196,16 @@ tbody tr:hover{background:#f8fafc}
 .branch-stat .bsl{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .branch-card .branch-actions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
 .user-card{background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--border);margin-bottom:10px;display:flex;align-items:center;gap:12px}
-.user-avatar{width:40px;height:40px;border-radius:50%;background:var(--navy2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;flex-shrink:0}
+.user-avatar{width:40px;height:40px;border-radius:50%;background:var(--navy2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;flex-shrink:0;overflow:hidden}
+.user-avatar img{width:100%;height:100%;object-fit:cover}
+.hright button.hdr-av{width:32px;height:32px;padding:0;border-radius:50%;overflow:hidden;border:2px solid #c8973a;background:#1e3a5f;color:#fff;font-weight:800;font-size:.8rem;cursor:pointer;display:none;align-items:center;justify-content:center}
+.hdr-av img{width:100%;height:100%;object-fit:cover}
+body.agent-mode #hdr-avatar{cursor:default}
+.sw-chip{padding:6px 11px;border-radius:16px;border:1.5px solid var(--border,#e2e8f0);background:#fff;font-size:.74rem;font-weight:700;cursor:pointer;color:var(--navy,#0f2342)}
+.sw-chip.on{background:#0f2342;color:#fff;border-color:#0f2342}
+.sw-tile{background:var(--bg);border-radius:10px;padding:10px;text-align:center}
+.sw-tile b{display:block;font-size:1.05rem;color:#0f2342}
+.sw-tile span{font-size:.64rem;text-transform:uppercase;color:var(--muted);font-weight:700}
 .user-info{flex:1}
 .user-info h4{font-size:.84rem;font-weight:700;color:var(--navy)}
 .user-info p{font-size:.72rem;color:var(--muted)}
@@ -396,6 +405,7 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
       <div class="branch-badge" id="branch-badge" style="display:none"></div>
     </div>
     <div class="hright">
+      <button class="hdr-av" id="hdr-avatar" onclick="openMyProfile()" title="My profile"></button>
       <span id="hdr-date" style="font-size:.73rem;opacity:.65"></span>
       <button class="pwa-install-btn" onclick="pwaInstall()" style="display:none">&#128241; Install App</button>
       <button onclick="showPage('notifications')" id="notif-btn">&#128276; Alerts</button>
@@ -745,7 +755,7 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
           <div class="sh">&#128181; Investment Details</div>
           <div class="form-grid">
             <div class="fg"><label>Investment Amount (&#8358;) *</label><input required type="number" id="inv-amount" placeholder="0" oninput="invCalc()"/></div>
-            <div class="fg"><label>Investment Plan *</label><select required id="inv-plan" onchange="invCalc()"><option value="">Select plan</option><option value="10" selected>10% Per Annum (Monthly Interest)</option><option value="15">15% Per Annum</option><option value="20">20% Per Annum</option><option value="25">25% Per Annum</option></select></div>
+            <div class="fg"><label>Investment Plan *</label><select required id="inv-plan" onchange="invCalc()"><option value="">Select plan</option><option value="7" selected>7% Monthly Interest</option><option value="15">15% Per Annum</option><option value="20">20% Per Annum</option><option value="25">25% Per Annum</option></select></div>
             <div class="fg"><label>Duration *</label>
               <div style="display:flex;gap:6px">
                 <input type="number" id="inv-dur-n" placeholder="e.g. 6" min="1" style="flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.87rem;font-family:inherit" oninput="invCalc()"/>
@@ -774,7 +784,7 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
           </div>
           <!-- Monthly interest display -->
           <div id="inv-monthly-box" style="display:none;background:#ede9fe;border:1.5px solid #c4b5fd;border-radius:10px;padding:14px;margin:10px 0">
-            <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#5b21b6;margin-bottom:10px">&#128200; Monthly Interest Breakdown (10% per annum)</div>
+            <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#5b21b6;margin-bottom:10px">&#128200; Monthly Interest Breakdown</div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px">
               <div style="background:#fff;border-radius:8px;padding:9px;text-align:center;border:1px solid #ddd6fe"><div style="font-size:.95rem;font-weight:800;color:#5b21b6" id="inv-monthly-amt">&#8358;0</div><div style="font-size:.6rem;color:#64748b;text-transform:uppercase;margin-top:2px">Monthly Interest</div></div>
               <div style="background:#fff;border-radius:8px;padding:9px;text-align:center;border:1px solid #ddd6fe"><div style="font-size:.95rem;font-weight:800;color:#0f2342" id="inv-monthly-periods">0</div><div style="font-size:.6rem;color:#64748b;text-transform:uppercase;margin-top:2px">Total Months</div></div>
@@ -1066,6 +1076,19 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
         <div class="card-title">&#127891; New Children Education Support Application
           <button class="btn btn-out btn-sm no-print" onclick="showPage('ces')">&#8592; Back</button>
         </div>
+        <details style="background:#f5f3ff;border:1.5px solid #ddd6fe;border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:.8rem;line-height:1.55">
+          <summary style="cursor:pointer;font-weight:800;color:#7c3aed">&#128214; EduCash Guide &mdash; how to explain the programme to the parent</summary>
+          <p style="margin-top:8px"><strong>What it is:</strong> We help parents in Lagos State pay school fees from Creche, Nursery, Primary to Secondary. We pay <strong>directly to the school account</strong>. We do not give cash to parents.</p>
+          <p style="margin-top:6px"><strong>Support amounts:</strong> &#8358;10,000, &#8358;20,000, &#8358;30,000, &#8358;50,000, &#8358;70,000 or &#8358;100,000. Repayment in 3 months: daily, weekly or monthly.</p>
+          <p style="margin-top:6px"><strong>Example &#8358;50,000:</strong> processing fee &#8358;4,000 (once) &bull; service charge &#8358;7,000 &bull; pay back &#8358;57,000 in 3 months &bull; pay back early and pay only &#8358;55,600 (save &#8358;1,400).</p>
+          <p style="margin-top:6px"><strong>Why a processing fee (paid once, not again next term):</strong> office rent, staff who verify the home and school, transport for verification, printing the Ajo Card and Members ID Card, app and website upkeep, and receipt and file printing. The parent gets a receipt, Ajo Card and ID Card immediately.</p>
+          <p style="margin-top:6px"><strong>Why a service charge:</strong> keeps the company running to help more parents; covers bank charges and business operation for 3 months.</p>
+          <p style="margin-top:6px"><strong>Documents &mdash; child:</strong> passport photo; school bill, report card, ID card or admission letter; birth certificate (Creche and Nursery only).</p>
+          <p style="margin-top:6px"><strong>Documents &mdash; parent:</strong> <u>NIN</u> (Federal Government requires it to prove identity); <u>LASRRA card</u> (proves residence in Lagos; Lagos State requires it for school enrolment); <u>Tax clearance</u> (Tax Clearance Certificate, LIRS Tax Card or tax receipt &mdash; Lagos State requires it for school enrolment, and it helps us approve faster); school name, address, phone and bank account.</p>
+          <p style="margin-top:6px"><strong>Guarantors:</strong> Single mother or single father = 2 guarantors. Married parents = 1 guarantor. Each guarantor: NIN, passport photo, phone number and house address.</p>
+          <p style="margin-top:6px"><strong>If late:</strong> days 1&ndash;7 no penalty, friendly reminder &bull; days 8&ndash;14 agent visits, plan can change to daily or weekly &bull; days 15&ndash;30 one-time extra 2 weeks, no extra charge &bull; after 30 days parent and guarantor are invited to the office. Late fee &#8358;500 per week after that, maximum &#8358;2,000, and it can be cancelled if the parent calls early.</p>
+          <p style="margin-top:6px"><strong>We never:</strong> remove the child from school, embarrass the parent, take property, or post anyone on social media.</p>
+        </details>
         <form id="ces-form" onsubmit="submitCESApplication(event)">
           <div class="sh" style="margin-top:0">&#128100; Applicant (Parent / Guardian) Information</div>
           <div class="form-grid">
@@ -1087,6 +1110,11 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
             <div class="fg"><label>Child's Age / Class</label><input id="ces-child-age" placeholder="e.g. 9 years, Primary 4"/></div>
             <div class="fg"><label>School Name *</label><input required id="ces-school" placeholder="School name"/></div>
             <div class="fg"><label>School Address</label><input id="ces-school-addr" placeholder="School address"/></div>
+            <div class="fg"><label>School Level *</label><select required id="ces-level"><option value="">Select</option><option>Creche</option><option>Nursery</option><option>Primary</option><option>Secondary</option></select></div>
+            <div class="fg"><label>School Phone Number</label><input id="ces-school-phone" placeholder="School phone number"/></div>
+            <div class="fg"><label>School Bank Name</label><input id="ces-sb-bank" placeholder="School bank"/></div>
+            <div class="fg"><label>School Account Name</label><input id="ces-sb-accname" placeholder="Account name"/></div>
+            <div class="fg"><label>School Account Number</label><input id="ces-sb-accno" placeholder="School account number (we pay the school directly)"/></div>
           </div>
           <div class="sh">&#128100; Guarantor 1</div>
           <div class="form-grid">
@@ -1104,8 +1132,8 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
           </div>
           <div class="sh">&#128176; Support Amount Requested</div>
           <div class="form-grid">
-            <div class="fg"><label>Support Amount Requested (&#8358;) *</label><input required type="number" id="ces-amount" min="10000" max="100000" step="1000" placeholder="10,000 - 100,000" oninput="cesCalcLive()"/></div>
-            <div class="fg"><label>Repayment Plan *</label><select required id="ces-plan" onchange="cesCalcLive()"><option value="">Select</option><option value="Daily">Daily (90 days)</option><option value="Weekly">Weekly (12 weeks)</option></select></div>
+            <div class="fg"><label>Support Amount Requested (&#8358;) *</label><select required id="ces-amount" onchange="cesCalcLive()"><option value="">-- Select amount --</option></select></div>
+            <div class="fg"><label>Repayment Plan *</label><select required id="ces-plan" onchange="cesCalcLive()"><option value="">Select</option><option value="Daily">Daily (90 days)</option><option value="Weekly">Weekly (12 weeks)</option><option value="Monthly">Monthly (3 months)</option></select></div>
             <div class="fg"><label>Branch *</label><select id="ces-branch" required><option value="">-- Select Branch --</option></select></div>
           </div>
           <div id="ces-calc-box" style="display:none;background:#f5f3ff;border:1.5px solid #7c3aed;border-radius:10px;padding:12px;margin-bottom:16px"></div>
@@ -1164,7 +1192,7 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
           <div class="fg"><label>Minimum Support Amount (&#8358;)</label><input type="number" id="cess-min"/></div>
           <div class="fg"><label>Maximum Support Amount (&#8358;)</label><input type="number" id="cess-max"/></div>
         </div>
-        <div class="sh">Service Fee Tiers</div>
+        <div class="sh">Service Charge Tiers (% of support amount)</div>
         <div class="form-grid">
           <div class="fg"><label>Tier 1 Max Amount (&#8358;)</label><input type="number" id="cess-t1max"/></div>
           <div class="fg"><label>Tier 1 Fee (%)</label><input type="number" id="cess-t1pct"/></div>
@@ -1173,14 +1201,32 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
           <div class="fg"><label>Tier 3 Max Amount (&#8358;)</label><input type="number" id="cess-t3max"/></div>
           <div class="fg"><label>Tier 3 Fee (%)</label><input type="number" id="cess-t3pct"/></div>
         </div>
+        <div class="sh">Processing Fee (one-time, new members only)</div>
+        <div class="form-grid">
+          <div class="fg"><label>Amount 1 &mdash; up to (&#8358;)</label><input type="number" id="cess-pf1max"/></div>
+          <div class="fg"><label>Amount 1 &mdash; processing fee (&#8358;)</label><input type="number" id="cess-pf1fee"/></div>
+          <div class="fg"><label>Amount 2 &mdash; up to (&#8358;)</label><input type="number" id="cess-pf2max"/></div>
+          <div class="fg"><label>Amount 2 &mdash; processing fee (&#8358;)</label><input type="number" id="cess-pf2fee"/></div>
+          <div class="fg"><label>Amount 3 &mdash; up to (&#8358;)</label><input type="number" id="cess-pf3max"/></div>
+          <div class="fg"><label>Amount 3 &mdash; processing fee (&#8358;)</label><input type="number" id="cess-pf3fee"/></div>
+          <div class="fg"><label>Amount 4 &mdash; up to (&#8358;)</label><input type="number" id="cess-pf4max"/></div>
+          <div class="fg"><label>Amount 4 &mdash; processing fee (&#8358;)</label><input type="number" id="cess-pf4fee"/></div>
+          <div class="fg"><label>Amount 5 &mdash; up to (&#8358;)</label><input type="number" id="cess-pf5max"/></div>
+          <div class="fg"><label>Amount 5 &mdash; processing fee (&#8358;)</label><input type="number" id="cess-pf5fee"/></div>
+          <div class="fg"><label>Amount 6 &mdash; up to (&#8358;)</label><input type="number" id="cess-pf6max"/></div>
+          <div class="fg"><label>Amount 6 &mdash; processing fee (&#8358;)</label><input type="number" id="cess-pf6fee"/></div>
+        </div>
         <div class="sh">Repayment Durations</div>
         <div class="form-grid">
           <div class="fg"><label>Daily Plan &mdash; Number of Days</label><input type="number" id="cess-dailydays"/></div>
           <div class="fg"><label>Weekly Plan &mdash; Number of Weeks</label><input type="number" id="cess-weeklyweeks"/></div>
+          <div class="fg"><label>Monthly Plan &mdash; Number of Months</label><input type="number" id="cess-monthlymonths"/></div>
         </div>
-        <div class="sh">Early Repayment Discount</div>
+        <div class="sh">Early Payback &amp; Late Fee</div>
         <div class="form-grid">
-          <div class="fg"><label>Early Repayment Discount (%)</label><input type="number" id="cess-discpct"/></div>
+          <div class="fg"><label>Early Payback Discount (% of service charge)</label><input type="number" id="cess-discpct"/></div>
+          <div class="fg"><label>Late Fee per Week after 30 days (&#8358;)</label><input type="number" id="cess-lfweekly"/></div>
+          <div class="fg"><label>Late Fee Maximum (&#8358;)</label><input type="number" id="cess-lfmax"/></div>
         </div>
         <button class="btn btn-navy" style="background:#7c3aed" onclick="saveCESSettings()">&#128190; Save Programme Settings</button>
       </div>
@@ -1804,7 +1850,7 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
       <div class="card">
         <div class="card-title">
           <span>&#128101; Staff Management</span>
-          <button class="btn btn-navy btn-sm" id="new-staff-btn" onclick="openUserModal()">&#43; New Staff Account</button>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-out btn-sm" onclick="openTeamWork()">&#128202; Team Work Report</button><button class="btn btn-navy btn-sm" id="new-staff-btn" onclick="openUserModal()">&#43; New Staff Account</button></span>
         </div>
         <div class="search-row">
           <input type="text" id="usr-srch" placeholder="Search staff..." oninput="renderUsers()"/>
@@ -1942,6 +1988,12 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
     <div class="mbody">
       <input type="hidden" id="um-id"/>
       <div class="form-grid" style="grid-template-columns:1fr">
+        <div class="fg"><label>Profile Photo</label>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div id="um-photo-prev" style="width:64px;height:64px;border-radius:50%;overflow:hidden;background:#1e3a5f;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:800;border:3px solid #c8973a;flex-shrink:0"></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap"><label class="btn btn-out btn-sm" style="cursor:pointer">&#128247; Upload<input type="file" accept="image/*" style="display:none" onchange="umPhotoPick(this)"/></label><button type="button" class="btn btn-out btn-sm" onclick="umPhotoClear()">Remove</button></div>
+          </div>
+        </div>
         <div class="fg"><label>Full Name *</label><input id="um-name" placeholder="Staff full name"/></div>
         <div class="fg"><label>Username *</label><input id="um-username" placeholder="Login username" autocomplete="off"/></div>
         <div class="fg" id="um-pass-fg"><label>Password *</label><input type="password" id="um-pass" placeholder="Set a password" autocomplete="new-password"/></div>
@@ -2304,6 +2356,37 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
       <button class="mclose" onclick="closeModal('ces-pay-modal')">&times;</button>
     </div>
     <div class="mbody" id="ces-pay-body"></div>
+  </div>
+</div>
+
+<!-- STAFF PROFILE / WORK REPORT -->
+<div class="overlay" id="prof-modal">
+  <div class="modal" style="max-width:440px">
+    <div class="mhead"><h3>My Profile</h3><button class="mclose" onclick="closeModal('prof-modal')">&times;</button></div>
+    <div class="mbody" id="prof-body"></div>
+  </div>
+</div>
+<div class="overlay" id="sw-modal">
+  <div class="modal" style="max-width:720px">
+    <div class="mhead"><h3 id="sw-title">Staff Work Report</h3><button class="mclose" onclick="closeModal('sw-modal')">&times;</button></div>
+    <div class="mbody" id="sw-body"></div>
+  </div>
+</div>
+<div class="overlay" id="tw-modal">
+  <div class="modal" style="max-width:760px">
+    <div class="mhead"><h3>Team Work Report</h3><button class="mclose" onclick="closeModal('tw-modal')">&times;</button></div>
+    <div class="mbody" id="tw-body"></div>
+  </div>
+</div>
+
+<!-- CES PROCESSING FEE -->
+<div class="overlay" id="ces-fee-modal">
+  <div class="modal" style="max-width:480px">
+    <div class="mhead">
+      <h3>Processing Fee (one-time)</h3>
+      <button class="mclose" onclick="closeModal('ces-fee-modal')">&times;</button>
+    </div>
+    <div class="mbody" id="ces-fee-body"></div>
   </div>
 </div>
 
@@ -3568,13 +3651,14 @@ function renderUsers(){
   const el=document.getElementById('users-list');if(!el)return;
   if(list.length===0){el.innerHTML='<p style="text-align:center;color:var(--muted);padding:20px">No staff accounts found.</p>';return}
   el.innerHTML=list.map(u=>`<div class="user-card">
-    <div class="user-avatar" style="${u.role==='admin'?'background:var(--purple)':''}">${(u.name||'?')[0].toUpperCase()}</div>
+    <div class="user-avatar" style="${u.role==='admin'?'background:var(--purple)':''}">${profAvatarInner(u)}</div>
     <div class="user-info">
       <h4>${u.name||'—'} <span class="badge b-${u.role==='admin'?'admin':u.role==='manager'?'manager':'staff'}">${u.role||'staff'}</span></h4>
       <p>@${u.username||'—'} &bull; &#127970; ${getBranchName(u.branchId)} ${u.phone?'&bull; '+u.phone:''}</p>
     </div>
     <span class="badge b-${u.status==='active'?'active':'inactive'}">${u.status||'active'}</span>
     <div style="display:flex;gap:4px;margin-left:8px">
+      <button class="btn btn-out btn-sm" title="Work report" onclick="openStaffWork('${u.id}')">&#128202;</button>
       <button class="btn btn-amber btn-sm" onclick="editUser('${u.id}')">&#9998;</button>
       <button class="btn btn-red btn-sm" onclick="deleteUser('${u.id}')">&#128465;</button>
     </div>
@@ -3634,6 +3718,7 @@ function openUserModal(editId){
     if(passFg){passFg.querySelector('label').textContent='Password *'}
   }
   setupUserModalForRole();
+  umPhoto=undefined;umPhotoPaint();
   showModal('user-modal');
 }
 function editUser(id){openUserModal(id)}
@@ -3676,6 +3761,7 @@ function saveUser(){
     phone, status,
     updatedAt:new Date().toISOString()
   };
+  if(umPhoto!==undefined)data.photo=umPhoto;
   if(pass)data.password=pass;
 
   console.log('[Zmonie] Saving staff_users doc:', data);
@@ -4296,7 +4382,7 @@ function invCalc(){
   // CORRECT MODEL: 10% of PRINCIPAL is paid out EVERY MONTH (not 10% per annum spread out)
   // e.g. ₦500,000 invested → ₦50,000 every month, for as many months as chosen.
   // On the final month, investor collects: that month's 10% interest + the principal back.
-  const monthlyRatePercent=10; // 10% flat every month
+  const monthlyRatePercent=parseFloat(v('inv-plan'))||7; // flat % of principal every month (default 7%)
   const monthlyInterest=amt*(monthlyRatePercent/100);
   const n=parseInt(dn)||0;
   const totalMonths=du==='years'?n*12:n;
@@ -5016,7 +5102,7 @@ function renderINV(list){
       '<td>'+i.phone+'</td>'+
       '<td><span style="font-size:.68rem;background:#f5f3ff;padding:2px 6px;border-radius:4px;border:1px solid #ddd6fe">'+getBranchName(i.branchId)+'</span></td>'+
       '<td style="font-weight:700">&#8358;'+fmt(amt)+'</td>'+
-      '<td>'+( i.plan||'--')+'% p.a.</td>'+
+      '<td>'+( i.plan||'--')+'% monthly</td>'+
       '<td style="color:#7c3aed;font-weight:700">&#8358;'+fmt(invGetMonthlyInterest(i))+'/mo</td>'+
       '<td>'+(i.startdate||'--')+'</td>'+
       '<td style="font-weight:700">'+(i.maturityDate||'--')+'</td>'+
@@ -5044,7 +5130,7 @@ function submitInvestment(e){
   if(!v('inv-startdate')){toast('Please select the start date','e');return}
   const dn=v('inv-dur-n'), du=v('inv-dur-u'), startdate=v('inv-startdate');
   const maturityDate=invGetMaturity(startdate,dn,du);
-  const amt=parseFloat(v('inv-amount'))||0, rate=parseFloat(v('inv-plan'))||10;
+  const amt=parseFloat(v('inv-amount'))||0, rate=parseFloat(v('inv-plan'))||7;
   const totalMonths=du==='years'?(parseInt(dn)||0)*12:(parseInt(dn)||0);
   // CORRECT MODEL: rate% of principal paid out EVERY month (flat, not annualized)
   const monthlyInterest=amt*(rate/100);
@@ -5812,7 +5898,7 @@ function showInvCode(inv){
       <div class="info-item"><label>Investor</label><p>${inv.name}</p></div>
       <div class="info-item"><label>Phone</label><p>${inv.phone}</p></div>
       <div class="info-item"><label>Amount</label><p>&#8358;${fmt(amt)}</p></div>
-      <div class="info-item"><label>Plan</label><p>${inv.plan}% p.a.</p></div>
+      <div class="info-item"><label>Plan</label><p>${inv.plan}% monthly</p></div>
       <div class="info-item"><label>Monthly Interest</label><p>&#8358;${fmt(mi)}</p></div>
       <div class="info-item"><label>Duration</label><p>${inv.duration||'--'}</p></div>
       <div class="info-item"><label>Start Date</label><p>${inv.startdate||'--'}</p></div>
@@ -7296,7 +7382,7 @@ function exportSALReportCSV(){
 // ===== CHILDREN EDUCATION SUPPORT MODULE =====
 // =====================================================
 let allCES=[], cesCurId=null, cesLastReport=null, cesDocsCache={};
-let cesSettings={min:10000,max:100000,tiers:[{max:30000,pct:10},{max:60000,pct:12},{max:100000,pct:15}],dailyDays:90,weeklyWeeks:12,discPct:3};
+let cesSettings={min:10000,max:100000,tiers:[{max:30000,pct:14},{max:60000,pct:14},{max:100000,pct:14}],procFees:[{max:10000,fee:2000},{max:20000,fee:2500},{max:30000,fee:3000},{max:50000,fee:4000},{max:70000,fee:5000},{max:100000,fee:5000}],dailyDays:90,weeklyWeeks:12,monthlyMonths:3,discPct:20,lateFeeWeekly:500,lateFeeMax:2000,v:2};
 const CES_BLANK="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='55%25' font-size='28' text-anchor='middle' fill='%2394a3b8'%3E%F0%9F%93%84%3C/text%3E%3C/svg%3E";
 const CES_DOC_BASE=[
   {key:'father-nin',label:"Father's NIN"},
@@ -7304,14 +7390,13 @@ const CES_DOC_BASE=[
   {key:'father-lasrra',label:"Father's LASRRA Card"},
   {key:'mother-lasrra',label:"Mother's LASRRA Card"},
   {key:'child-photo',label:"Child's Passport Photograph"},
-  {key:'school-bill',label:"School Bill / Admission Letter"},
+  {key:'tax-doc',label:"Tax Clearance Certificate / LIRS Tax Card / Tax Receipt"},
+  {key:'school-bill',label:"School Bill / Report Card / ID Card / Admission Letter"},
   {key:'g1-nin',label:"Guarantor 1 NIN"},
-  {key:'g1-lasrra',label:"Guarantor 1 LASRRA Card"},
   {key:'g1-photo',label:"Guarantor 1 Passport Photograph"}
 ];
 const CES_DOC_SINGLE_EXTRA=[
   {key:'g2-nin',label:"Guarantor 2 NIN"},
-  {key:'g2-lasrra',label:"Guarantor 2 LASRRA Card"},
   {key:'g2-photo',label:"Guarantor 2 Passport Photograph"}
 ];
 const CES_SIGS_MARRIED=[
@@ -7325,7 +7410,8 @@ const CES_SIGS_SINGLE=[
   {key:'sig-g2',label:"Guarantor 2 Signature"}
 ];
 function cesDocSlots(c){
-  const extra=(c.maritalStatus==='Single Mother'||c.maritalStatus==='Single Father')?CES_DOC_SINGLE_EXTRA:[];
+  let extra=(c.maritalStatus==='Single Mother'||c.maritalStatus==='Single Father')?CES_DOC_SINGLE_EXTRA:[];
+  if(c.schoolLevel==='Creche'||c.schoolLevel==='Nursery')extra=extra.concat([{key:'child-birth-cert',label:"Child's Birth Certificate (Creche / Nursery)"}]);
   const sigs=c.maritalStatus==='Married'?CES_SIGS_MARRIED:CES_SIGS_SINGLE;
   return {docs:CES_DOC_BASE.concat(extra), sigs};
 }
@@ -7334,6 +7420,16 @@ function cesCalcFee(amount){
   const tier=cesSettings.tiers.find(t=>amount<=t.max) || cesSettings.tiers[cesSettings.tiers.length-1];
   const fee=Math.round(amount*tier.pct/100);
   return {pct:tier.pct, fee, total:amount+fee};
+}
+function cesProcFee(amount){
+  const t=cesSettings.procFees.find(x=>amount<=x.max)||cesSettings.procFees[cesSettings.procFees.length-1];
+  return t.fee;
+}
+function cesAmounts(){ return cesSettings.procFees.map(x=>x.max); }
+function cesPeriods(plan){ return plan==='Daily'?cesSettings.dailyDays:(plan==='Monthly'?cesSettings.monthlyMonths:cesSettings.weeklyWeeks); }
+// A parent who already paid the one-time processing fee is not charged again.
+function cesIsReturning(custId,phone,exceptId){
+  return allCES.some(x=>x.id!==exceptId&&x.status!=='Rejected'&&x.processingFee&&(x.processingFee.paid||(x.processingFee.waived&&x.processingFee.fromPrior))&&((custId&&x.customerId===custId)||(phone&&x.phone===phone)));
 }
 function cesGenId(){ return 'CES-'+Date.now().toString().slice(-7); }
 function cesGenRef(){ return 'CESTXN-'+Date.now().toString().slice(-8)+Math.floor(Math.random()*90+10); }
@@ -7352,48 +7448,53 @@ function cesLoadSettings(){
   return db.collection('settings').doc('ces').get().then(doc=>{
     if(doc.exists){
       const d=doc.data();
-      cesSettings={
-        min:d.min||10000, max:d.max||100000,
-        tiers:d.tiers&&d.tiers.length?d.tiers:cesSettings.tiers,
-        dailyDays:d.dailyDays||90, weeklyWeeks:d.weeklyWeeks||12, discPct:d.discPct!==undefined?d.discPct:3
-      };
+      // v2 = EduCash programme settings. Older saved settings (v1) are ignored so the EduCash defaults apply.
+      if(d.v===2){
+        cesSettings={
+          min:d.min||10000, max:d.max||100000,
+          tiers:d.tiers&&d.tiers.length?d.tiers:cesSettings.tiers,
+          procFees:d.procFees&&d.procFees.length?d.procFees:cesSettings.procFees,
+          dailyDays:d.dailyDays||90, weeklyWeeks:d.weeklyWeeks||12, monthlyMonths:d.monthlyMonths||3,
+          discPct:d.discPct!==undefined?d.discPct:20,
+          lateFeeWeekly:d.lateFeeWeekly!==undefined?d.lateFeeWeekly:500, lateFeeMax:d.lateFeeMax!==undefined?d.lateFeeMax:2000, v:2
+        };
+      }
     }
   }).catch(()=>{});
 }
 function cesFillSettingsForm(){
-  document.getElementById('cess-min').value=cesSettings.min;
-  document.getElementById('cess-max').value=cesSettings.max;
-  document.getElementById('cess-t1max').value=cesSettings.tiers[0].max;
-  document.getElementById('cess-t1pct').value=cesSettings.tiers[0].pct;
-  document.getElementById('cess-t2max').value=cesSettings.tiers[1].max;
-  document.getElementById('cess-t2pct').value=cesSettings.tiers[1].pct;
-  document.getElementById('cess-t3max').value=cesSettings.tiers[2].max;
-  document.getElementById('cess-t3pct').value=cesSettings.tiers[2].pct;
-  document.getElementById('cess-dailydays').value=cesSettings.dailyDays;
-  document.getElementById('cess-weeklyweeks').value=cesSettings.weeklyWeeks;
-  document.getElementById('cess-discpct').value=cesSettings.discPct;
+  const set=(id,val)=>{const e=document.getElementById(id);if(e)e.value=val};
+  set('cess-min',cesSettings.min);set('cess-max',cesSettings.max);
+  cesSettings.tiers.forEach((t,i)=>{set('cess-t'+(i+1)+'max',t.max);set('cess-t'+(i+1)+'pct',t.pct)});
+  cesSettings.procFees.forEach((t,i)=>{set('cess-pf'+(i+1)+'max',t.max);set('cess-pf'+(i+1)+'fee',t.fee)});
+  set('cess-dailydays',cesSettings.dailyDays);set('cess-weeklyweeks',cesSettings.weeklyWeeks);set('cess-monthlymonths',cesSettings.monthlyMonths);
+  set('cess-discpct',cesSettings.discPct);set('cess-lfweekly',cesSettings.lateFeeWeekly);set('cess-lfmax',cesSettings.lateFeeMax);
 }
 function saveCESSettings(){
   if(currentSession.role!=='admin'){toast('Admin access required','e');return}
+  const n=(id,d)=>{const x=parseFloat(v(id));return isNaN(x)?d:x};
   const data={
-    min:parseFloat(v('cess-min'))||10000, max:parseFloat(v('cess-max'))||100000,
-    tiers:[
-      {max:parseFloat(v('cess-t1max'))||30000, pct:parseFloat(v('cess-t1pct'))||10},
-      {max:parseFloat(v('cess-t2max'))||60000, pct:parseFloat(v('cess-t2pct'))||12},
-      {max:parseFloat(v('cess-t3max'))||100000, pct:parseFloat(v('cess-t3pct'))||15}
-    ],
-    dailyDays:parseInt(v('cess-dailydays'))||90, weeklyWeeks:parseInt(v('cess-weeklyweeks'))||12,
-    discPct:parseFloat(v('cess-discpct'))!==undefined?(parseFloat(v('cess-discpct'))||0):3
+    min:n('cess-min',10000), max:n('cess-max',100000),
+    tiers:[1,2,3].map(i=>({max:n('cess-t'+i+'max',[30000,60000,100000][i-1]),pct:n('cess-t'+i+'pct',14)})),
+    procFees:[1,2,3,4,5,6].map(i=>({max:n('cess-pf'+i+'max',cesSettings.procFees[i-1].max),fee:n('cess-pf'+i+'fee',cesSettings.procFees[i-1].fee)})),
+    dailyDays:parseInt(v('cess-dailydays'))||90, weeklyWeeks:parseInt(v('cess-weeklyweeks'))||12, monthlyMonths:parseInt(v('cess-monthlymonths'))||3,
+    discPct:n('cess-discpct',20), lateFeeWeekly:n('cess-lfweekly',500), lateFeeMax:n('cess-lfmax',2000), v:2
   };
   db.collection('settings').doc('ces').set(data).then(()=>{
     cesSettings=data;
-    logAudit('CES Programme Settings Updated', 'Support limits, fee tiers, repayment durations and/or discount rate changed.');
+    logAudit('CES Programme Settings Updated', 'Support limits, service charge, processing fees, repayment durations, early payback discount and/or late fee changed.');
     toast('Programme settings saved!','s');
   }).catch(e=>toast('Error: '+e.message,'e'));
 }
 
 // ----- Branch dropdowns -----
 function populateCESBranchDropdowns(){
+  const amtSel=document.getElementById('ces-amount');
+  if(amtSel&&amtSel.tagName==='SELECT'){
+    const keep=amtSel.value;
+    amtSel.innerHTML='<option value="">-- Select amount --</option>'+cesAmounts().map(a=>'<option value="'+a+'">&#8358;'+fmt(a)+' (processing fee &#8358;'+fmt(cesProcFee(a))+')</option>').join('');
+    amtSel.value=keep;
+  }
   const sel=document.getElementById('ces-branch');
   if(sel){
     sel.innerHTML='<option value="">-- Select Branch --</option>';
@@ -7424,14 +7525,17 @@ function cesCalcLive(){
   if(!amt){box.style.display='none';return}
   const {pct,fee,total}=cesCalcFee(amt);
   const plan=v('ces-plan');
+  const pf=cesProcFee(amt), returning=cesIsReturning(v('ces-cust-id'),v('ces-phone'));
+  const early=round2(total-fee*cesSettings.discPct/100);
   let periodsNote='';
-  if(plan==='Daily') periodsNote=cesSettings.dailyDays+' daily instalments of roughly &#8358;'+fmt(round2(total/cesSettings.dailyDays));
-  else if(plan==='Weekly') periodsNote=cesSettings.weeklyWeeks+' weekly instalments of roughly &#8358;'+fmt(round2(total/cesSettings.weeklyWeeks));
+  if(plan){const n=cesPeriods(plan);periodsNote=n+' '+(plan==='Daily'?'daily':plan==='Weekly'?'weekly':'monthly')+' instalments of roughly &#8358;'+fmt(round2(total/n))}
   box.style.display='block';
-  box.innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>Support Amount</span><strong>&#8358;'+fmt(amt)+'</strong></div>'+
-    '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>Service Fee ('+pct+'%)</span><strong>&#8358;'+fmt(fee)+'</strong></div>'+
-    '<div style="display:flex;justify-content:space-between;border-top:1px solid #ddd6fe;padding-top:4px;font-size:.95rem"><span>Total Repayment</span><strong style="color:#7c3aed">&#8358;'+fmt(total)+'</strong></div>'+
-    (periodsNote?'<div style="font-size:.72rem;color:var(--muted);margin-top:6px">'+periodsNote+'</div>':'');
+  box.innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>School fees we pay to the school</span><strong>&#8358;'+fmt(amt)+'</strong></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>Service Charge ('+pct+'%)</span><strong>&#8358;'+fmt(fee)+'</strong></div>'+
+    '<div style="display:flex;justify-content:space-between;border-top:1px solid #ddd6fe;padding-top:4px;font-size:.95rem"><span>Total to pay back</span><strong style="color:#7c3aed">&#8358;'+fmt(total)+'</strong></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:.8rem"><span>Processing fee (one time)</span><strong>'+(returning?'<span style="color:var(--green)">Waived &mdash; returning member</span>':'&#8358;'+fmt(pf))+'</strong></div>'+
+    '<div style="font-size:.74rem;color:var(--muted);margin-top:6px">If paid back early (before the end of the plan) the parent pays only <strong>&#8358;'+fmt(early)+'</strong> and saves &#8358;'+fmt(round2(fee*cesSettings.discPct/100))+'.</div>'+
+    (periodsNote?'<div style="font-size:.72rem;color:var(--muted);margin-top:4px">'+periodsNote+'</div>':'');
 }
 
 // ----- Scope / list / search -----
@@ -7489,7 +7593,7 @@ function renderCESStats(){
     '<div class="stat-card" style="border-color:#0891b2"><div class="stat-val">&#8358;'+fmt(totalToSchools)+'</div><div class="stat-lbl">Total Paid to Schools</div></div>'+
     '<div class="stat-card" style="border-color:var(--green)"><div class="stat-val">&#8358;'+fmt(totalRepaid)+'</div><div class="stat-lbl">Total Repayments Received</div></div>'+
     '<div class="stat-card" style="border-color:var(--red)"><div class="stat-val">&#8358;'+fmt(totalOutstanding)+'</div><div class="stat-lbl">Outstanding Repayment Balances</div></div>'+
-    '<div class="stat-card" style="border-color:var(--navy)"><div class="stat-val">&#8358;'+fmt(totalFees)+'</div><div class="stat-lbl">Total Service Fees</div></div>'+
+    '<div class="stat-card" style="border-color:var(--navy)"><div class="stat-val">&#8358;'+fmt(totalFees)+'</div><div class="stat-lbl">Total Service Charges</div></div>'+
     '<div class="stat-card" style="border-color:#c8973a"><div class="stat-val">&#8358;'+fmt(totalDiscounts)+'</div><div class="stat-lbl">Early Repayment Discounts Granted</div></div>'+
     (overdue>0?'<div class="stat-card" style="border-color:var(--red)"><div class="stat-val" style="color:var(--red)">'+overdue+'</div><div class="stat-lbl">Overdue Accounts</div></div>':'')+
     '<div class="stat-card" style="border-color:var(--green)"><div class="stat-val">'+completed+'</div><div class="stat-lbl">Completed Support Plans</div></div>';
@@ -7541,7 +7645,9 @@ function submitCESApplication(e){
   if(!branchId){toast('Please select a branch','e');return}
   const amount=parseFloat(v('ces-amount'))||0;
   if(amount<cesSettings.min||amount>cesSettings.max){toast('Support amount must be between \u20a6'+fmt(cesSettings.min)+' and \u20a6'+fmt(cesSettings.max),'e');return}
+  if(!cesAmounts().includes(amount)){toast('Choose one of the EduCash support amounts','e');return}
   if(!v('ces-plan')){toast('Please select a repayment plan','e');return}
+  if(!v('ces-level')){toast('Please select the school level','e');return}
   if(!v('ces-name')||!v('ces-phone')||!v('ces-address')||!v('ces-marital')||!v('ces-child-name')||!v('ces-school')||!v('ces-g1-name')||!v('ces-g1-phone')){
     toast('Please fill in all required fields','e');return;
   }
@@ -7552,6 +7658,9 @@ function submitCESApplication(e){
     maritalStatus:v('ces-marital'),
     spouseName:v('ces-spouse-name'), spousePhone:v('ces-spouse-phone'),
     childName:v('ces-child-name'), childAge:v('ces-child-age'), school:v('ces-school'), schoolAddress:v('ces-school-addr'),
+    schoolLevel:v('ces-level'), schoolPhone:v('ces-school-phone'),
+    schoolBank:{bankName:v('ces-sb-bank'),accountName:v('ces-sb-accname'),accountNumber:v('ces-sb-accno')},
+    processingFee:(function(){const ret=cesIsReturning(v('ces-cust-id'),v('ces-phone'));return {amount:cesProcFee(amount),waived:ret,fromPrior:ret,paid:false}})(),
     guarantor1:{name:v('ces-g1-name'),phone:v('ces-g1-phone'),address:v('ces-g1-addr'),relationship:v('ces-g1-rel')},
     guarantor2:{name:v('ces-g2-name'),phone:v('ces-g2-phone'),address:v('ces-g2-addr'),relationship:v('ces-g2-rel')},
     requestedAmount:amount, requestedPct:pct, requestedFee:fee, requestedTotal:total,
@@ -7563,7 +7672,7 @@ function submitCESApplication(e){
   db.collection('ceseducation').add(data).then(ref=>{
     allCES.unshift({id:ref.id,...data});
     logAudit('CES Application Registered', data.name+' ('+data.cesId+') applied for \u20a6'+fmt(amount)+' support for '+data.childName+' at '+data.school+'.');
-    toast('Application saved. Now upload all required documents to complete registration.','s');
+    toast('Application saved. Upload the required documents and record the processing fee.','s');
     resetCESForm();
     showPage('ces');
     viewCESProfile(ref.id);
@@ -7650,7 +7759,7 @@ function cesDocTiles(appId,c){
 
 // ----- Repayment schedule -----
 function cesGenerateSchedule(c,startDate){
-  const periods=c.plan==='Daily'?cesSettings.dailyDays:cesSettings.weeklyWeeks;
+  const periods=cesPeriods(c.plan);
   const total=c.approvedTotal;
   const base=round2(total/periods);
   const schedule=[]; let running=0;
@@ -7658,6 +7767,7 @@ function cesGenerateSchedule(c,startDate){
   for(let i=0;i<periods;i++){
     const due=new Date(start);
     if(c.plan==='Daily') due.setDate(due.getDate()+i+1);
+    else if(c.plan==='Monthly') due.setMonth(due.getMonth()+i+1);
     else due.setDate(due.getDate()+(i+1)*7);
     let amt=base;
     if(i===periods-1) amt=round2(total-running);
@@ -7722,7 +7832,8 @@ function openCESSchoolModal(id){
   cesCurId=id;
   const c=allCES.find(x=>x.id===id);if(!c)return;
   if(cesMissingDocs(c).length){toast('All required documents and signatures must be uploaded before paying the school.','e');return}
-  const sp=c.schoolPayment||{};
+  if(c.processingFee&&!c.processingFee.paid&&!c.processingFee.waived){toast('Record the processing fee before paying the school.','e');return}
+  const sp=Object.assign({},c.schoolBank||{},c.schoolPayment||{});
   document.getElementById('ces-school-title').textContent='School Fee Payment \u2014 '+c.school;
   document.getElementById('ces-school-body').innerHTML=
     '<div style="background:var(--bg);border-radius:8px;padding:12px;margin-bottom:12px"><strong>'+c.childName+'</strong> at <strong>'+c.school+'</strong><br/><span style="font-size:.78rem;color:var(--muted)">Approved Support: &#8358;'+fmt(c.approvedAmount||0)+'</span></div>'+
@@ -7767,13 +7878,13 @@ function openCESPayModal(id){
     '<div style="font-weight:700">'+c.name+' &bull; '+c.cesId+'</div>'+
     '<div style="font-size:.78rem;color:var(--muted)">Total Repayment: &#8358;'+fmt(cesEffectiveTotal(c))+' &bull; Paid: <strong style="color:#7c3aed">&#8358;'+fmt(cesPaidTotal(c))+'</strong> &bull; Outstanding: <strong style="color:var(--red)">&#8358;'+fmt(cesOutstanding(c))+'</strong>'+(next?' &bull; Next Due: '+next:'')+'</div></div>'+
     '<div class="form-grid">'+
-    '<div class="fg"><label>Instalment Due ('+(c.plan==='Daily'?'Daily':'Weekly')+') (&#8358;) *</label><input type="number" id="ces-pay-amt" value="'+cesNextInstalment(c)+'"/></div>'+
+    '<div class="fg"><label>Instalment Due ('+c.plan+') (&#8358;) *</label><input type="number" id="ces-pay-amt" value="'+cesNextInstalment(c)+'"/></div>'+
     '<div class="fg"><label>Payment Date *</label><input type="date" id="ces-pay-date" value="'+td()+'"/></div>'+
     '<div class="fg"><label>Payment Method</label><input id="ces-pay-method" placeholder="Cash, Transfer, etc."/></div>'+
     '<div class="fg"><label>Transaction Reference</label><input id="ces-pay-ref" placeholder="Leave blank to auto-generate"/></div>'+
     '</div>'+
     '<button class="btn btn-navy" style="background:#7c3aed;width:100%;justify-content:center;padding:11px;margin-top:8px" onclick="saveCESPayment()">Save Repayment</button>'+
-    (cesEligibleForDiscount(c)?'<button class="btn btn-out btn-sm" style="width:100%;justify-content:center;margin-top:8px;border-color:#c8973a;color:#c8973a" onclick="applyCESEarlyDiscount(\''+c.id+'\')">&#127942; Apply '+cesSettings.discPct+'% Early Repayment Discount</button>':'')+
+    (cesEligibleForDiscount(c)?'<button class="btn btn-out btn-sm" style="width:100%;justify-content:center;margin-top:8px;border-color:#c8973a;color:#c8973a" onclick="applyCESEarlyDiscount(\''+c.id+'\')">&#127942; Apply Early Payback Discount (&#8358;'+fmt(cesEarlyDiscAmt(c))+' off service charge)</button>':'')+
     '<div class="sh" style="margin-top:10px">History ('+(c.payments||[]).length+')</div>'+
     ((c.payments||[]).length===0?'<p style="color:var(--muted);font-size:.82rem;text-align:center;padding:10px">No repayments recorded yet.</p>':
     '<div class="tbl-wrap"><table><thead><tr><th>#</th><th>Ref</th><th>Amount</th><th>Date</th><th>Method</th><th>Del</th></tr></thead><tbody>'+
@@ -7816,14 +7927,17 @@ function delCESPayment(idx){
 
 // ----- Early repayment discount -----
 function cesEligibleForDiscount(c){
-  return c.status==='Repaying' && !c.earlyDiscount && cesOutstanding(c)>0 && cesPaidTotal(c)>0;
+  if(!(c.status==='Repaying' && !c.earlyDiscount && cesOutstanding(c)>0 && cesPaidTotal(c)>0)) return false;
+  const last=(c.schedule&&c.schedule.length)?c.schedule[c.schedule.length-1].due:null;
+  return !last || td()<=last;   // early payback only applies before the plan ends
 }
+function cesEarlyDiscAmt(c){ return round2((c.approvedFee||0)*cesSettings.discPct/100); }
 function applyCESEarlyDiscount(id){
   const c=allCES.find(x=>x.id===id);if(!c)return;
   if(c.earlyDiscount){toast('Early repayment discount has already been applied to this application','e');return}
-  if(!confirm('Verify eligibility and apply the '+cesSettings.discPct+'% early repayment discount to the outstanding balance?'))return;
+  if(!confirm('Apply the early payback discount ('+cesSettings.discPct+'% of the service charge = \u20a6'+fmt(cesEarlyDiscAmt(c))+') to this application?'))return;
   const originalOutstanding=cesOutstanding(c);
-  const discAmt=round2(originalOutstanding*cesSettings.discPct/100);
+  const discAmt=Math.min(cesEarlyDiscAmt(c),originalOutstanding);
   const revisedOutstanding=round2(originalOutstanding-discAmt);
   const revisedTotal=round2(cesEffectiveTotal(c)-discAmt);
   const earlyDiscount={pct:cesSettings.discPct, amount:discAmt, originalOutstanding, revisedOutstanding, revisedTotal, appliedBy:currentSession.name||currentSession.username, appliedAt:new Date().toISOString()};
@@ -7833,6 +7947,113 @@ function applyCESEarlyDiscount(id){
     toast('Early repayment discount applied!','s');
     renderCES(scopedCES());renderCESStats();
     openCESPayModal(id);
+  }).catch(e=>toast('Error: '+e.message,'e'));
+}
+
+// ----- Processing fee (one time) -----
+function cesFeeSectionHTML(c){
+  const pf=c.processingFee; if(!pf) return '';
+  let st;
+  if(pf.paid) st='<span style="color:var(--green)">&#10003; Paid &#8358;'+fmt(pf.paidAmount||pf.amount)+' on '+pf.paidDate+' &bull; Ref '+(pf.ref||'--')+'</span>';
+  else if(pf.waived) st='<span style="color:var(--green)">Waived &mdash; returning member (not charged again)</span>';
+  else st='<span style="color:var(--red)">Not paid yet</span>';
+  return '<div class="sh">&#129534; Processing Fee (one-time)</div>'+
+    '<div style="background:var(--bg);border-radius:8px;padding:10px 12px;font-size:.82rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div>Fee: <strong>&#8358;'+fmt(pf.amount)+'</strong><br/>'+st+'</div>'+
+    (!pf.paid&&!pf.waived?'<button class="btn btn-sm no-print" style="background:#7c3aed;color:#fff" onclick="openCESFeeModal(\''+c.id+'\')">Record Processing Fee</button>':(pf.paid?'<button class="btn btn-out btn-sm no-print" onclick="printCESFeeReceipt(\''+c.id+'\')">&#128424; Receipt</button>':''))+
+    '</div>';
+}
+function openCESFeeModal(id){
+  const c=allCES.find(x=>x.id===id);if(!c||!c.processingFee)return;
+  cesCurId=id;
+  document.getElementById('ces-fee-body').innerHTML=
+    '<div style="background:var(--bg);border-radius:8px;padding:12px;margin-bottom:12px"><strong>'+c.name+'</strong> &bull; '+c.cesId+'<br/><span style="font-size:.78rem;color:var(--muted)">Support requested: &#8358;'+fmt(c.approvedAmount||c.requestedAmount||0)+'</span></div>'+
+    '<div class="form-grid">'+
+    '<div class="fg"><label>Processing Fee (&#8358;) *</label><input type="number" id="ces-fee-amt" value="'+c.processingFee.amount+'"/></div>'+
+    '<div class="fg"><label>Date Paid *</label><input type="date" id="ces-fee-date" value="'+td()+'"/></div>'+
+    '<div class="fg"><label>Method</label><select id="ces-fee-method"><option>Cash</option><option>Bank Transfer</option><option>POS</option></select></div>'+
+    '<div class="fg"><label>Reference</label><input id="ces-fee-ref" placeholder="Leave blank to auto-generate"/></div></div>'+
+    '<p style="font-size:.76rem;color:var(--muted);margin:6px 0">After saving: give the parent the receipt, ZMONIE Ajo Card and Members ID Card.</p>'+
+    '<button class="btn btn-navy" style="background:#7c3aed;width:100%;justify-content:center;padding:11px" onclick="saveCESFee()">&#9989; Save Processing Fee</button>';
+  showModal('ces-fee-modal');
+}
+function saveCESFee(){
+  const c=allCES.find(x=>x.id===cesCurId);if(!c||!c.processingFee)return;
+  const amt=parseFloat(v('ces-fee-amt'))||0, date=v('ces-fee-date');
+  if(amt<=0||!date){toast('Enter the fee amount and date','e');return}
+  const pf=Object.assign({},c.processingFee,{paid:true,paidAmount:amt,paidDate:date,method:v('ces-fee-method'),ref:v('ces-fee-ref')||cesGenRef(),receivedBy:currentSession.name||currentSession.username,paidAt:new Date().toISOString()});
+  db.collection('ceseducation').doc(cesCurId).set({processingFee:pf},{merge:true}).then(()=>{
+    c.processingFee=pf;
+    closeModal('ces-fee-modal');
+    logAudit('CES Processing Fee Recorded','\u20a6'+fmt(amt)+' processing fee from '+c.name+' ('+c.cesId+'). Ref: '+pf.ref);
+    toast('Processing fee recorded. Issue receipt, Ajo Card and Members ID Card.','s');
+    renderCES(scopedCES());viewCESProfile(cesCurId);
+  }).catch(e=>toast('Error: '+e.message,'e'));
+}
+function printCESFeeReceipt(id){
+  const c=allCES.find(x=>x.id===id);if(!c||!c.processingFee||!c.processingFee.paid)return;
+  const pf=c.processingFee;
+  const win=window.open('','_blank','width=640,height=760');if(!win){toast('Allow pop-ups to print the receipt','e');return}
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Receipt</title><style>body{font-family:Arial,sans-serif;padding:28px;color:#1e293b;max-width:520px;margin:0 auto}h1{color:#7c3aed;font-size:1.2rem}td{padding:7px 8px;border-bottom:1px solid #e2e8f0;font-size:.85rem}td:first-child{font-weight:700;color:#64748b;width:42%}</style></head><body>'+
+    '<h2 style="margin:0;color:#0f2342">ZMONIE GLOBAL VENTURE LIMITED</h2><p style="margin:2px 0;font-size:.8rem;color:#64748b">T/A ZMONIE Technology Platform &bull; Your Need Is Our Priority</p>'+
+    '<h1>Education Support &mdash; Processing Fee Receipt</h1><table>'+
+    '<tr><td>Receipt Ref</td><td>'+(pf.ref||'--')+'</td></tr><tr><td>Application</td><td>'+c.cesId+'</td></tr>'+
+    '<tr><td>Parent / Guardian</td><td>'+c.name+'</td></tr><tr><td>Child</td><td>'+c.childName+'</td></tr><tr><td>School</td><td>'+c.school+'</td></tr>'+
+    '<tr><td>Amount Paid</td><td><strong>&#8358;'+fmt(pf.paidAmount||pf.amount)+'</strong></td></tr><tr><td>Date</td><td>'+pf.paidDate+'</td></tr><tr><td>Method</td><td>'+(pf.method||'--')+'</td></tr>'+
+    '<tr><td>Received By</td><td>'+(pf.receivedBy||'--')+'</td></tr></table>'+
+    '<p style="font-size:.78rem;color:#64748b;margin-top:14px">This is a one-time fee. It is not charged again when you apply in a future term.</p>'+
+    '<scr'+'ipt>setTimeout(function(){window.print()},400)</scr'+'ipt></body></html>');
+  win.document.close();
+}
+
+// ----- Late payment handling (grace stages and late fee) -----
+function cesLateInfo(c){
+  if(!c.schedule||!c.schedule.length||!['Repaying','School Payment Pending','Support Disbursed'].includes(c.status)) return null;
+  const paid=cesPaidTotal(c);let running=0,firstDue=null;
+  for(const x of c.schedule){running+=x.amount;if(running>paid+0.5){firstDue=x.due;break}}
+  if(!firstDue) return null;
+  const days=Math.floor((new Date(td()+'T00:00:00')-new Date(firstDue+'T00:00:00'))/86400000);
+  if(days<=0) return null;
+  let msg;
+  if(days<=7) msg='Days 1\u20137: no penalty. Send a friendly reminder.';
+  else if(days<=14) msg='Days 8\u201314: agent visits the parent. Offer to change to a daily or weekly plan.';
+  else if(days<=30) msg='Days 15\u201330: one-time extra 2 weeks with no extra charge.';
+  else msg='Over 30 days: invite the parent and guarantor to the office to agree a new date.';
+  const weeks=days>30?Math.ceil((days-30)/7):0;
+  const accrued=Math.min(weeks*cesSettings.lateFeeWeekly,cesSettings.lateFeeMax);
+  const paidFee=(c.lateFeePayments||[]).reduce((a,p)=>a+(parseFloat(p.amount)||0),0);
+  return {days,msg,accrued,paidFee,waived:!!c.lateFeeWaived,due:c.lateFeeWaived?0:Math.max(0,accrued-paidFee)};
+}
+function cesLateHTML(c){
+  const L=cesLateInfo(c); if(!L) return '';
+  const canWaive=currentSession.role==='admin'||currentSession.role==='manager';
+  return '<div style="background:#fff7ed;border:1.5px solid #fdba74;border-radius:8px;padding:10px 12px;margin:10px 0;font-size:.8rem">'+
+    '<strong style="color:#c2410c">&#9888; '+L.days+' day(s) late</strong><br/>'+L.msg+
+    (L.accrued>0?'<br/>Late fee: &#8358;'+fmt(L.accrued)+(L.paidFee?' &bull; paid &#8358;'+fmt(L.paidFee):'')+(L.waived?' &bull; <strong>cancelled</strong>':' &bull; due <strong>&#8358;'+fmt(L.due)+'</strong>'):'')+
+    '<div class="no-print" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">'+
+    (L.due>0?'<button class="btn btn-sm" style="background:#16a34a;color:#fff" onclick="cesRecordLateFee(\''+c.id+'\')">Record Late Fee Paid</button>':'')+
+    (L.accrued>0&&!L.waived&&canWaive?'<button class="btn btn-out btn-sm" onclick="cesWaiveLateFee(\''+c.id+'\')">Cancel Late Fee</button>':'')+
+    '</div></div>';
+}
+function cesRecordLateFee(id){
+  const c=allCES.find(x=>x.id===id);if(!c)return;
+  const L=cesLateInfo(c);if(!L||L.due<=0)return;
+  const a=parseFloat(prompt('Late fee amount received (\u20a6)',L.due));
+  if(!a||a<=0)return;
+  const pays=[...(c.lateFeePayments||[]),{amount:a,date:td(),by:currentSession.name||currentSession.username}];
+  db.collection('ceseducation').doc(id).set({lateFeePayments:pays},{merge:true}).then(()=>{
+    c.lateFeePayments=pays;
+    logAudit('CES Late Fee Recorded','\u20a6'+fmt(a)+' late fee from '+c.name+' ('+c.cesId+').');
+    toast('Late fee recorded','s');viewCESProfile(id);
+  }).catch(e=>toast('Error: '+e.message,'e'));
+}
+function cesWaiveLateFee(id){
+  if(currentSession.role!=='admin'&&currentSession.role!=='manager'){toast('Admin or manager only','e');return}
+  const c=allCES.find(x=>x.id===id);if(!c)return;
+  if(!confirm('Cancel the late fee for this application?'))return;
+  db.collection('ceseducation').doc(id).set({lateFeeWaived:true},{merge:true}).then(()=>{
+    c.lateFeeWaived=true;
+    logAudit('CES Late Fee Cancelled','Late fee cancelled for '+c.name+' ('+c.cesId+').');
+    toast('Late fee cancelled','s');viewCESProfile(id);
   }).catch(e=>toast('Error: '+e.message,'e'));
 }
 
@@ -7869,6 +8090,9 @@ function viewCESProfile(id){
       '<div class="iitem"><label>Age / Class</label><p>'+(c.childAge||'--')+'</p></div>'+
       '<div class="iitem"><label>School</label><p>'+c.school+'</p></div>'+
       '<div class="iitem"><label>School Address</label><p>'+(c.schoolAddress||'--')+'</p></div>'+
+      '<div class="iitem"><label>School Level</label><p>'+(c.schoolLevel||'--')+'</p></div>'+
+      '<div class="iitem"><label>School Phone</label><p>'+(c.schoolPhone||'--')+'</p></div>'+
+      '<div class="iitem"><label>School Account</label><p>'+(c.schoolBank&&c.schoolBank.accountNumber?(c.schoolBank.accountNumber+' ('+(c.schoolBank.bankName||'--')+')'):'--')+'</p></div>'+
       '</div>'+
       '<div class="sh">&#128100; Guarantor 1</div>'+
       '<div class="info-grid" style="margin-top:0">'+
@@ -7883,10 +8107,11 @@ function viewCESProfile(id){
         '<div class="iitem"><label>Address</label><p>'+((c.guarantor2&&c.guarantor2.address)||'--')+'</p></div>'+
         '<div class="iitem"><label>Relationship</label><p>'+((c.guarantor2&&c.guarantor2.relationship)||'--')+'</p></div></div>'):'')+
       cesDocTiles(id,c)+'</div>'+
-      '<div class="sh">&#128176; Support &amp; Repayment</div>'+
+      cesFeeSectionHTML(c)+
+      '<div class="sh">&#128176; Support &amp; Repayment</div>'+cesLateHTML(c)+
       '<div class="repay-sum">'+
       '<div class="rs"><div class="rv">&#8358;'+fmt(c.approvedAmount||c.requestedAmount||0)+'</div><div class="rl">'+(c.approvedAmount?'Approved':'Requested')+' Amount</div></div>'+
-      '<div class="rs"><div class="rv">&#8358;'+fmt(c.approvedFee||c.requestedFee||0)+'</div><div class="rl">Service Fee ('+(c.approvedPct||c.requestedPct||0)+'%)</div></div>'+
+      '<div class="rs"><div class="rv">&#8358;'+fmt(c.approvedFee||c.requestedFee||0)+'</div><div class="rl">Service Charge ('+(c.approvedPct||c.requestedPct||0)+'%)</div></div>'+
       '<div class="rs"><div class="rv" style="color:#7c3aed">&#8358;'+fmt(cesEffectiveTotal(c)||c.requestedTotal||0)+'</div><div class="rl">Total Repayment</div></div>'+
       '<div class="rs"><div class="rv" style="color:var(--green)">&#8358;'+fmt(paidTotal)+'</div><div class="rl">Paid So Far</div></div>'+
       '<div class="rs"><div class="rv" style="color:'+(outstanding>0?'var(--red)':'var(--green)')+'">&#8358;'+fmt(outstanding)+'</div><div class="rl">Outstanding</div></div>'+
@@ -7935,7 +8160,7 @@ function printCESStatement(){
   '<tr><td>Child\'s Name</td><td>'+c.childName+'</td></tr><tr><td>School</td><td>'+c.school+'</td></tr></table></div>'+
   '<div class="section"><h3>Support Account</h3><table>'+
   '<tr><td>Approved Amount</td><td>&#8358;'+fmt(c.approvedAmount||0)+'</td></tr>'+
-  '<tr><td>Service Fee</td><td>&#8358;'+fmt(c.approvedFee||0)+'</td></tr>'+
+  '<tr><td>Service Charge</td><td>&#8358;'+fmt(c.approvedFee||0)+'</td></tr>'+
   '<tr><td>Total Repayment</td><td>&#8358;'+fmt(c.approvedTotal||0)+'</td></tr>'+
   '<tr><td>Repayment Plan</td><td>'+c.plan+'</td></tr>'+
   '<tr><td>Status</td><td>'+c.status+'</td></tr></table></div>'+
@@ -8302,12 +8527,14 @@ function agAgentsHtml(){
     const btns=(a.status!=='active'?'<button class="btn btn-sm btn-navy" data-act="agstatus" data-id="'+a.id+'" data-status="active" onclick="agAct(this)">Activate</button>':'')+
       (a.status==='active'?'<button class="btn btn-sm btn-out" data-act="agstatus" data-id="'+a.id+'" data-status="suspended" onclick="agAct(this)">Suspend</button>':'')+
       (a.status!=='deactivated'?'<button class="btn btn-sm btn-red" data-act="agstatus" data-id="'+a.id+'" data-status="deactivated" onclick="agAct(this)">Deactivate</button>':'')+
-      '<button class="btn btn-sm btn-out" data-act="agreset" data-id="'+a.id+'" onclick="agAct(this)">Reset</button>';
-    return '<tr><td><strong>'+agEsc(a.name)+'</strong></td><td>'+agEsc(a.username)+'</td><td>'+agEsc(a.phone||'--')+'</td><td>'+agBadge(a.status)+'</td><td>'+(cnt[a.id]||0)+'</td><td>&#8358;'+fmt(b.net)+'</td><td>&#8358;'+fmt(b.available)+'</td><td>&#8358;'+fmt(b.reserved)+'</td><td>&#8358;'+fmt(b.withdrawn)+'</td><td><div style="display:flex;gap:4px;flex-wrap:wrap">'+btns+'</div></td></tr>';
+      '<button class="btn btn-sm btn-out" data-act="agreset" data-id="'+a.id+'" onclick="agAct(this)">Reset</button>'+
+      '<label class="btn btn-sm btn-out" style="cursor:pointer" title="Change photo">&#128247;<input type="file" accept="image/*" style="display:none" onchange="agPhotoFor(this,\''+a.id+'\')"/></label>';
+    return '<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="user-avatar" style="width:30px;height:30px;font-size:.75rem">'+profAvatarInner(a)+'</div><strong>'+agEsc(a.name)+'</strong></div></td><td>'+agEsc(a.username)+'</td><td>'+agEsc(a.phone||'--')+'</td><td>'+agBadge(a.status)+'</td><td>'+(cnt[a.id]||0)+'</td><td>&#8358;'+fmt(b.net)+'</td><td>&#8358;'+fmt(b.available)+'</td><td>&#8358;'+fmt(b.reserved)+'</td><td>&#8358;'+fmt(b.withdrawn)+'</td><td><div style="display:flex;gap:4px;flex-wrap:wrap">'+btns+'</div></td></tr>';
   });
   return '<div class="card"><div class="card-title">&#43; Create Agent Account</div><div class="form-grid">'+
     '<div class="fg"><label>Full Name *</label><input id="agn-name" placeholder="Agent full name"/></div>'+
     '<div class="fg"><label>Username *</label><input id="agn-user" placeholder="e.g. tunde.a"/></div>'+
+    '<div class="fg"><label>Profile Photo</label><div style="display:flex;align-items:center;gap:12px"><div id="agn-photo-prev" style="width:64px;height:64px;border-radius:50%;overflow:hidden;background:#1e3a5f;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:800;border:3px solid #c8973a;flex-shrink:0">'+(agnPhoto?'<img src="'+agnPhoto+'" style="width:100%;height:100%;object-fit:cover" alt=""/>':'&#128100;')+'</div><label class="btn btn-out btn-sm" style="cursor:pointer">&#128247; Upload<input type="file" accept="image/*" style="display:none" onchange="agnPhotoPick(this)"/></label></div></div>'+
     '<div class="fg"><label>Phone</label><input id="agn-phone" placeholder="08XXXXXXXXX"/></div>'+
     '<div class="fg"><label>Initial Password * (min 6)</label><input id="agn-pass" type="text" placeholder="Agent changes it at first login"/></div></div>'+
     '<button class="btn btn-navy" data-act="agcreate" onclick="agAct(this)">&#128190; Create Agent</button></div>'+
@@ -8393,6 +8620,29 @@ async function agAct(el){
     else if(act==='agwd-pay')await agOpenPay(id);
   }catch(e){hideLoader();agErr(e)}
 }
+let umPhoto, agnPhoto='';
+function umPhotoPaint(){
+  const el=document.getElementById('um-photo-prev');if(!el)return;
+  const ph=umPhoto!==undefined?umPhoto:((allUsers.find(x=>x.id===editUserId)||{}).photo||'');
+  el.innerHTML=ph?'<img src="'+ph+'" style="width:100%;height:100%;object-fit:cover" alt=""/>':profInitial(v('um-name'));
+}
+function umPhotoPick(inp){const f=inp.files[0];if(!f)return;profCompress(f,d=>{umPhoto=d;umPhotoPaint()})}
+function umPhotoClear(){umPhoto='';umPhotoPaint()}
+function agnPhotoPick(inp){
+  const f=inp.files[0];if(!f)return;
+  profCompress(f,d=>{agnPhoto=d;const el=document.getElementById('agn-photo-prev');if(el)el.innerHTML='<img src="'+d+'" style="width:100%;height:100%;object-fit:cover" alt=""/>'});
+}
+async function agPhotoFor(inp,id){
+  if(!agAdminOnly())return;
+  const f=inp.files[0];if(!f)return;
+  profCompress(f,async d=>{
+    try{
+      await db.collection('agents').doc(id).set({photo:d},{merge:true});
+      const a=allAgents.find(x=>x.id===id);if(a)a.photo=d;
+      toast('Agent photo updated','s');agRenderTab();
+    }catch(e){agErr(e)}
+  });
+}
 async function agCreateAgent(){
   if(!agAdminOnly())return;
   const name=agClean(v('agn-name'),80),username=agClean(v('agn-user'),40).toLowerCase(),phone=agClean(v('agn-phone'),30),pw=v('agn-pass');
@@ -8404,11 +8654,11 @@ async function agCreateAgent(){
   await db.runTransaction(async tx=>{
     if((await tx.get(uref)).exists)throw new Error('That username is already taken.');
     tx.set(uref,{agentId:aref.id});
-    tx.set(aref,{name,username,phone,status:'active',createdAt:at,createdBy:currentSession.username||'admin'});
+    tx.set(aref,{name,username,phone,photo:agnPhoto||'',status:'active',createdAt:at,createdBy:currentSession.username||'admin'});
     tx.set(db.collection('agent_auth').doc(aref.id),{hash,salt,failed:0,lockedUntil:0,mustChange:true});
     tx.set(db.collection('agent_balances').doc(aref.id),{earned:0,reversed:0,reserved:0,withdrawn:0,updatedAt:at});
   });
-  agHasAgents=true;
+  agHasAgents=true;agnPhoto='';
   logAudit('Agent Created',name+' ('+username+') created.');
   await agLoadAdmin(false);hideLoader();toast('Agent created. Share the username and initial password privately.','s');agRenderTab();
 }
@@ -8548,7 +8798,7 @@ async function agentLoginUI(){
     if(a.data().status!=='active'){err.textContent='Your account is '+a.data().status+'. Contact the administrator.';return}
     await aref.set({failed:0,lockedUntil:0},{merge:true});
     currentSession={role:'agent',userId:a.id,username:'agent:'+u,branchId:null,branchName:null,name:a.data().name};
-    agentSession={id:a.id,name:a.data().name,username:u};
+    agentSession={id:a.id,name:a.data().name,username:u,photo:a.data().photo||''};
     document.getElementById('al-pass').value='';
     startAgentApp(!!au.mustChange);
   }catch(e){err.textContent=e.message||'Sign-in failed.'}
@@ -8562,6 +8812,7 @@ function startAgentApp(mustChange){
   const bb=document.getElementById('branch-badge');if(bb)bb.style.display='none';
   document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
   agMy=null;agWsAt=0;
+  profPaintHeader();
   showPage('agent-home');
   if(mustChange){toast('Please change your temporary password.','w');agOpenPw()}
 }
@@ -8832,6 +9083,187 @@ function agQuickService(sel){
     });
   }
 })();
+// =====================================================
+// ===== STAFF PROFILE PHOTOS + WEEKLY / MONTHLY WORK REPORT =====
+// =====================================================
+let profAdminPhoto='', profPending=null, swState={id:null,period:'week',from:'',to:''}, twState={period:'week',from:'',to:''};
+const swEsc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function profInitial(n){return swEsc((n||'?').trim()[0]||'?').toUpperCase()}
+function profAvatarInner(u){return u&&u.photo?'<img src="'+u.photo+'" alt=""/>':profInitial(u&&u.name)}
+function profMyPhoto(){
+  if(currentSession.role==='admin')return profAdminPhoto;
+  if(currentSession.role==='agent')return (agentSession&&agentSession.photo)||'';
+  const u=allUsers.find(x=>x.id===currentSession.userId);return u?(u.photo||''):'';
+}
+function profPaintHeader(){
+  const b=document.getElementById('hdr-avatar');if(!b)return;
+  const ph=profMyPhoto();
+  b.style.pointerEvents=currentSession.role==='agent'?'none':'auto';
+  b.innerHTML=ph?'<img src="'+ph+'" alt=""/>':profInitial(currentSession.name);
+  b.style.display=currentSession.role?'flex':'none';
+}
+async function profInit(){
+  if(currentSession.role==='admin'){
+    try{const d=await db.collection('settings').doc('admin_profile').get();profAdminPhoto=d.exists?(d.data().photo||''):''}catch(e){}
+  }
+  profPaintHeader();
+}
+function profCompress(file,cb){
+  const fr=new FileReader();
+  fr.onload=()=>{const im=new Image();im.onload=()=>{
+    const S=256,c=document.createElement('canvas');c.width=S;c.height=S;
+    const m=Math.min(im.width,im.height),sx=(im.width-m)/2,sy=(im.height-m)/2;
+    c.getContext('2d').drawImage(im,sx,sy,m,m,0,0,S,S);
+    cb(c.toDataURL('image/jpeg',0.8));
+  };im.onerror=()=>toast('Could not read that image','e');im.src=fr.result};
+  fr.readAsDataURL(file);
+}
+function openMyProfile(){
+  profPending=null;
+  const ph=profMyPhoto(), isAdm=currentSession.role==='admin';
+  const me=allUsers.find(x=>x.id===currentSession.userId);
+  document.getElementById('prof-body').innerHTML=
+    '<div style="text-align:center"><div id="prof-prev" style="width:110px;height:110px;border-radius:50%;margin:0 auto 10px;overflow:hidden;background:#1e3a5f;color:#fff;display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-weight:800;border:3px solid #c8973a">'+(ph?'<img src="'+ph+'" style="width:100%;height:100%;object-fit:cover" alt=""/>':profInitial(currentSession.name))+'</div>'+
+    '<div style="font-weight:800;font-size:1.05rem">'+swEsc(currentSession.name||'')+'</div>'+
+    '<div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">'+swEsc(currentSession.role||'')+' &bull; @'+swEsc(currentSession.username||'')+(currentSession.branchName?' &bull; '+swEsc(currentSession.branchName):'')+'</div></div>'+
+    '<label class="btn btn-out" style="display:flex;justify-content:center;cursor:pointer;margin-bottom:8px">&#128247; Take / Choose Photo<input type="file" accept="image/*" style="display:none" onchange="profPick(this)"/></label>'+
+    '<button class="btn btn-navy" style="width:100%;justify-content:center;padding:11px;margin-bottom:8px" onclick="profSaveMine()">&#128190; Save Photo</button>'+
+    (ph?'<button class="btn btn-out" style="width:100%;justify-content:center;margin-bottom:8px" onclick="profRemoveMine()">Remove Photo</button>':'')+
+    (!isAdm&&me?'<button class="btn btn-out" style="width:100%;justify-content:center" onclick="closeModal(\'prof-modal\');openStaffWork(\''+me.id+'\')">&#128202; My Work Report</button>':'');
+  showModal('prof-modal');
+}
+function profPick(inp){
+  const f=inp.files[0];if(!f)return;
+  profCompress(f,d=>{profPending=d;document.getElementById('prof-prev').innerHTML='<img src="'+d+'" style="width:100%;height:100%;object-fit:cover" alt=""/>'});
+}
+function profStore(userId,isAdminAcct,data){
+  const ref=isAdminAcct?db.collection('settings').doc('admin_profile'):db.collection('staff_users').doc(userId);
+  return ref.set({photo:data},{merge:true}).then(()=>{
+    if(isAdminAcct)profAdminPhoto=data;
+    else{const u=allUsers.find(x=>x.id===userId);if(u)u.photo=data}
+    profPaintHeader();
+    const pg=document.getElementById('page-users');if(pg&&pg.classList.contains('active'))renderUsers();
+  });
+}
+function profSaveMine(){
+  if(!profPending){toast('Choose a photo first','w');return}
+  profStore(currentSession.userId,currentSession.role==='admin',profPending).then(()=>{
+    closeModal('prof-modal');toast('Profile photo saved','s');
+    logAudit('Profile Photo Updated',(currentSession.name||currentSession.username)+' updated their profile photo.');
+  }).catch(e=>toast('Error: '+e.message,'e'));
+}
+function profRemoveMine(){
+  if(!confirm('Remove your profile photo?'))return;
+  profStore(currentSession.userId,currentSession.role==='admin','').then(()=>{closeModal('prof-modal');toast('Photo removed','w')}).catch(e=>toast('Error: '+e.message,'e'));
+}
+// admin / manager can set a staff member's photo from the work report
+function swPickFor(inp,userId){
+  const f=inp.files[0];if(!f)return;
+  profCompress(f,d=>profStore(userId,false,d).then(()=>{toast('Photo updated','s');openStaffWork(userId,true)}).catch(e=>toast('Error: '+e.message,'e')));
+}
+
+// ----- periods -----
+function swLocal(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function swRange(p,from,to){
+  const now=new Date(td()+'T00:00:00');
+  const mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7));
+  const add=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+  if(p==='week')return {from:swLocal(mon),to:swLocal(add(mon,6)),label:'This week'};
+  if(p==='lastweek')return {from:swLocal(add(mon,-7)),to:swLocal(add(mon,-1)),label:'Last week'};
+  if(p==='month')return {from:swLocal(new Date(now.getFullYear(),now.getMonth(),1)),to:swLocal(new Date(now.getFullYear(),now.getMonth()+1,0)),label:'This month'};
+  if(p==='lastmonth')return {from:swLocal(new Date(now.getFullYear(),now.getMonth()-1,1)),to:swLocal(new Date(now.getFullYear(),now.getMonth(),0)),label:'Last month'};
+  return {from:from||td(),to:to||td(),label:'Custom'};
+}
+function swCompute(u,from,to){
+  const inR=d=>d&&d>=from&&d<=to;
+  const mine=x=>x&&(x===u.username||x===u.name);
+  const logs=allAuditLogs.filter(l=>l.username===u.username&&inR(l.date)).sort((a,b)=>new Date(b.ts)-new Date(a.ts));
+  const actions={},days={};
+  logs.forEach(l=>{actions[l.action]=(actions[l.action]||0)+1;days[l.date]=(days[l.date]||0)+1});
+  const colls=[['Loans',allLoans],['EasyBuy',allEasyBuys],['Investments',allInvestments],['Fixed Deposits',allFDs],['Contributions',allContributions],['Salary Contributions',allSalaryContributions],['Education Support',allCES],['Customers',allCustomers]];
+  const created=colls.map(([label,arr])=>({label,n:(arr||[]).filter(r=>mine(r.createdBy)&&inR((r.createdAt||r.date||'').slice(0,10))).length}));
+  let pCount=0,pAmt=0;
+  [allLoans,allEasyBuys,allInvestments,allContributions,allSalaryContributions,allCES].forEach(arr=>(arr||[]).forEach(r=>(r.payments||[]).forEach(p=>{
+    if(mine(p.recordedBy)&&inR((p.recordedAt||p.date||'').slice(0,10))){pCount++;pAmt+=parseFloat(p.amount)||0}
+  })));
+  const createdTotal=created.reduce((a,c)=>a+c.n,0);
+  return {logs,actions,days,created,createdTotal,pCount,pAmt,activeDays:Object.keys(days).length};
+}
+function swCanView(u){
+  if(!u)return false;
+  if(currentSession.role==='admin')return true;
+  if(currentSession.role==='manager')return u.id===currentSession.userId||(u.branchId===currentSession.branchId&&u.role==='staff');
+  return u.id===currentSession.userId;
+}
+function swChips(cur,fn){
+  return [['week','This Week'],['lastweek','Last Week'],['month','This Month'],['lastmonth','Last Month'],['custom','Custom']].map(([k,l])=>'<button class="sw-chip'+(cur===k?' on':'')+'" onclick="'+fn+'(\''+k+'\')">'+l+'</button>').join('');
+}
+function openStaffWork(id,keep){
+  const u=allUsers.find(x=>x.id===id);
+  if(!swCanView(u)){toast('You can only view work reports for your own team','e');return}
+  if(!keep)swState={id,period:'week',from:'',to:''};
+  renderSW();showModal('sw-modal');
+}
+function swSet(p){swState.period=p;renderSW()}
+function swDates(){swState.from=v('sw-from');swState.to=v('sw-to');renderSW()}
+function renderSW(){
+  const u=allUsers.find(x=>x.id===swState.id);if(!u)return;
+  const r=swRange(swState.period,swState.from,swState.to), d=swCompute(u,r.from,r.to);
+  const canPhoto=currentSession.role==='admin'||currentSession.role==='manager';
+  document.getElementById('sw-title').textContent='Work Report \u2014 '+(u.name||u.username);
+  const top=Object.entries(d.actions).sort((a,b)=>b[1]-a[1]);
+  const dayRows=Object.entries(d.days).sort((a,b)=>a[0]<b[0]?1:-1);
+  document.getElementById('sw-body').innerHTML=
+    '<div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">'+
+    '<div style="width:64px;height:64px;border-radius:50%;overflow:hidden;background:#1e3a5f;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:800;border:3px solid #c8973a;flex-shrink:0">'+profAvatarInner(u)+'</div>'+
+    '<div style="min-width:0"><div style="font-weight:800">'+swEsc(u.name)+' <span class="badge b-'+(u.role==='manager'?'manager':'staff')+'">'+swEsc(u.role||'staff')+'</span></div>'+
+    '<div style="font-size:.76rem;color:var(--muted)">@'+swEsc(u.username)+' &bull; '+swEsc(getBranchName(u.branchId))+(u.phone?' &bull; '+swEsc(u.phone):'')+'</div>'+
+    (canPhoto?'<label style="font-size:.72rem;color:#7c3aed;font-weight:700;cursor:pointer">&#128247; Change photo<input type="file" accept="image/*" style="display:none" onchange="swPickFor(this,\''+u.id+'\')"/></label>':'')+'</div></div>'+
+    '<div class="no-print" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+swChips(swState.period,'swSet')+'</div>'+
+    (swState.period==='custom'?'<div class="no-print" style="display:flex;gap:8px;margin-bottom:8px"><input type="date" id="sw-from" value="'+r.from+'" onchange="swDates()"/><input type="date" id="sw-to" value="'+r.to+'" onchange="swDates()"/></div>':'')+
+    '<div style="font-size:.76rem;color:var(--muted);margin-bottom:10px">'+r.label+': <strong>'+r.from+'</strong> to <strong>'+r.to+'</strong></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:12px">'+
+    '<div class="sw-tile"><b>'+d.logs.length+'</b><span>Actions logged</span></div>'+
+    '<div class="sw-tile"><b>'+d.activeDays+'</b><span>Days active</span></div>'+
+    '<div class="sw-tile"><b>'+d.createdTotal+'</b><span>Records created</span></div>'+
+    '<div class="sw-tile"><b>'+d.pCount+'</b><span>Payments recorded</span></div>'+
+    '<div class="sw-tile"><b>&#8358;'+fmt(d.pAmt)+'</b><span>Amount collected</span></div></div>'+
+    '<div class="sh" style="margin-top:0">Records created</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">'+d.created.filter(c=>c.n).map(c=>'<span class="badge b-staff">'+c.label+': '+c.n+'</span>').join('')+(d.createdTotal?'':'<span style="font-size:.8rem;color:var(--muted)">None in this period.</span>')+'</div>'+
+    '<div class="sh">Work done (by activity)</div>'+
+    (top.length?'<div class="tbl-wrap"><table><thead><tr><th>Activity</th><th>Times</th></tr></thead><tbody>'+top.map(([a,n])=>'<tr><td>'+swEsc(a)+'</td><td><strong>'+n+'</strong></td></tr>').join('')+'</tbody></table></div>':'<p style="font-size:.8rem;color:var(--muted)">No logged activity in this period.</p>')+
+    '<div class="sh">Day by day</div>'+
+    (dayRows.length?'<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Actions</th></tr></thead><tbody>'+dayRows.map(([a,n])=>'<tr><td>'+a+'</td><td>'+n+'</td></tr>').join('')+'</tbody></table></div>':'<p style="font-size:.8rem;color:var(--muted)">No activity.</p>')+
+    '<div class="sh">Activity details (latest 50)</div>'+
+    (d.logs.length?'<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Time</th><th>Action</th><th>Details</th></tr></thead><tbody>'+d.logs.slice(0,50).map(l=>'<tr><td>'+l.date+'</td><td>'+swEsc(l.time)+'</td><td>'+swEsc(l.action)+'</td><td style="font-size:.76rem;color:var(--muted)">'+swEsc(l.details||'--')+'</td></tr>').join('')+'</tbody></table></div>':'<p style="font-size:.8rem;color:var(--muted)">Nothing to show.</p>')+
+    '<button class="btn btn-out no-print" style="margin-top:12px;width:100%;justify-content:center" onclick="swPrint()">&#128424; Print Report</button>';
+}
+function swPrint(){
+  const win=window.open('','_blank','width=800,height=900');if(!win){toast('Allow pop-ups to print','e');return}
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Staff Work Report</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#1e293b;font-size:13px}table{width:100%;border-collapse:collapse;margin:6px 0}td,th{padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:left}.sh{font-weight:800;color:#0f2342;margin-top:14px;text-transform:uppercase;font-size:.75rem}.sw-tile{display:inline-block;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;margin:3px;text-align:center}.sw-tile b{display:block}.no-print,button,input,label{display:none}img{border-radius:50%;width:56px;height:56px}</style></head><body><h2>Zmonie &mdash; Staff Work Report</h2>'+document.getElementById('sw-body').innerHTML+'<scr'+'ipt>setTimeout(function(){window.print()},400)</scr'+'ipt></body></html>');
+  win.document.close();
+}
+
+// ----- team overview -----
+function openTeamWork(){
+  if(currentSession.role!=='admin'&&currentSession.role!=='manager'){toast('Admin or manager only','e');return}
+  twState={period:'week',from:'',to:''};renderTW();showModal('tw-modal');
+}
+function twSet(p){twState.period=p;renderTW()}
+function twDates(){twState.from=v('tw-from');twState.to=v('tw-to');renderTW()}
+function renderTW(){
+  const r=swRange(twState.period,twState.from,twState.to);
+  const list=allUsers.filter(u=>u.role!=='admin'&&swCanView(u)&&u.status!=='inactive');
+  const rows=list.map(u=>({u,d:swCompute(u,r.from,r.to)})).sort((a,b)=>b.d.logs.length-a.d.logs.length);
+  document.getElementById('tw-body').innerHTML=
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+swChips(twState.period,'twSet')+'</div>'+
+    (twState.period==='custom'?'<div style="display:flex;gap:8px;margin-bottom:8px"><input type="date" id="tw-from" value="'+r.from+'" onchange="twDates()"/><input type="date" id="tw-to" value="'+r.to+'" onchange="twDates()"/></div>':'')+
+    '<div style="font-size:.76rem;color:var(--muted);margin-bottom:10px">'+r.label+': <strong>'+r.from+'</strong> to <strong>'+r.to+'</strong> &mdash; tap a staff member for full details</div>'+
+    (rows.length?'<div class="tbl-wrap"><table><thead><tr><th>Staff</th><th>Actions</th><th>Records</th><th>Payments</th><th>Collected</th></tr></thead><tbody>'+
+    rows.map(({u,d})=>'<tr style="cursor:pointer" onclick="closeModal(\'tw-modal\');openStaffWork(\''+u.id+'\')"><td><div style="display:flex;align-items:center;gap:8px"><div class="user-avatar" style="width:30px;height:30px;font-size:.75rem">'+profAvatarInner(u)+'</div><div><strong>'+swEsc(u.name)+'</strong><div style="font-size:.66rem;color:var(--muted)">'+swEsc(getBranchName(u.branchId))+'</div></div></div></td><td>'+d.logs.length+'</td><td>'+d.createdTotal+'</td><td>'+d.pCount+'</td><td>&#8358;'+fmt(d.pAmt)+'</td></tr>').join('')+'</tbody></table></div>':'<p style="text-align:center;color:var(--muted);padding:16px">No staff to show.</p>');
+}
+(function(){const o=loadAll;window.loadAll=async function(){await o.apply(this,arguments);try{await profInit()}catch(e){}}})();
+
 // =====================================================
 // ===== STAFF AUDIT LOG =====
 // Every contributor registration, profile update, contribution entry,
