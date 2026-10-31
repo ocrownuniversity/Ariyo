@@ -200,6 +200,18 @@ tbody tr:hover{background:#f8fafc}
 .user-avatar img{width:100%;height:100%;object-fit:cover}
 .hright button.hdr-av{width:32px;height:32px;padding:0;border-radius:50%;overflow:hidden;border:2px solid #c8973a;background:#1e3a5f;color:#fff;font-weight:800;font-size:.8rem;cursor:pointer;display:none;align-items:center;justify-content:center}
 .hdr-av img{width:100%;height:100%;object-fit:cover}
+#users-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.sc{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:0 1px 3px rgba(15,35,66,.06)}
+.sc-top{display:flex;gap:12px;align-items:center}
+.sc-av{width:58px;height:58px;border-radius:50%;overflow:hidden;background:var(--navy2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2rem;flex-shrink:0;border:3px solid #c8973a}
+.sc-av img{width:100%;height:100%;object-fit:cover}
+.sc-name{font-weight:800;font-size:.95rem;color:var(--navy);line-height:1.2;word-break:break-word}
+.sc-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+.sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin:12px 0}
+.sc-grid label{display:block;font-size:.6rem;text-transform:uppercase;font-weight:700;color:var(--muted);letter-spacing:.04em}
+.sc-grid span{font-size:.78rem;font-weight:600;color:var(--navy);word-break:break-word}
+.sc-act{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.sc-act .btn{justify-content:center;padding:8px 4px}
 body.agent-mode #hdr-avatar{cursor:default}
 .sw-chip{padding:6px 11px;border-radius:16px;border:1.5px solid var(--border,#e2e8f0);background:#fff;font-size:.74rem;font-weight:700;cursor:pointer;color:var(--navy,#0f2342)}
 .sw-chip.on{background:#0f2342;color:#fff;border-color:#0f2342}
@@ -2011,6 +2023,20 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
         <div class="fg"><label>Status</label>
           <select id="um-status"><option value="active">Active</option><option value="inactive">Inactive</option></select>
         </div>
+        <div class="sh" style="margin-top:6px">Personal Details</div>
+        <div class="fg"><label>Gender</label><select id="um-gender"><option value="">Select</option><option>Male</option><option>Female</option></select></div>
+        <div class="fg"><label>Date of Birth</label><input type="date" id="um-dob"/></div>
+        <div class="fg"><label>Marital Status</label><select id="um-marital"><option value="">Select</option><option>Single</option><option>Married</option><option>Divorced</option><option>Widowed</option></select></div>
+        <div class="fg"><label>Email</label><input type="email" id="um-email" placeholder="Staff email address"/></div>
+        <div class="fg"><label>NIN / ID Number</label><input id="um-nin" placeholder="National ID number"/></div>
+        <div class="fg"><label>Home Address</label><input id="um-address" placeholder="Staff home address"/></div>
+        <div class="sh" style="margin-top:6px">Employment</div>
+        <div class="fg"><label>Date Employed</label><input type="date" id="um-employed"/></div>
+        <div class="sh" style="margin-top:6px">Next of Kin</div>
+        <div class="fg"><label>Next of Kin Name</label><input id="um-nok-name" placeholder="Full name"/></div>
+        <div class="fg"><label>Relationship</label><input id="um-nok-rel" placeholder="e.g. Spouse, Parent, Brother"/></div>
+        <div class="fg"><label>Next of Kin Phone</label><input id="um-nok-phone" placeholder="Phone number"/></div>
+        <div class="fg"><label>Next of Kin Address</label><input id="um-nok-addr" placeholder="Address"/></div>
       </div>
       <div class="btn-row">
         <button class="btn btn-navy" onclick="saveUser()">&#128190; Save Account</button>
@@ -2356,6 +2382,14 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
       <button class="mclose" onclick="closeModal('ces-pay-modal')">&times;</button>
     </div>
     <div class="mbody" id="ces-pay-body"></div>
+  </div>
+</div>
+
+<!-- STAFF FULL PROFILE -->
+<div class="overlay" id="staff-profile-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="mhead"><h3>Staff Profile</h3><button class="mclose" onclick="closeModal('staff-profile-modal')">&times;</button></div>
+    <div class="mbody" id="staff-profile-body"></div>
   </div>
 </div>
 
@@ -3651,19 +3685,33 @@ function renderUsers(){
   });
   const el=document.getElementById('users-list');if(!el)return;
   if(list.length===0){el.innerHTML='<p style="text-align:center;color:var(--muted);padding:20px">No staff accounts found.</p>';return}
-  el.innerHTML=list.map(u=>`<div class="user-card">
-    <div class="user-avatar" style="${u.role==='admin'?'background:var(--purple)':''}">${profAvatarInner(u)}</div>
-    <div class="user-info">
-      <h4>${u.name||'—'} <span class="badge b-${u.role==='admin'?'admin':u.role==='manager'?'manager':'staff'}">${u.role||'staff'}</span></h4>
-      <p>@${u.username||'—'} &bull; &#127970; ${getBranchName(u.branchId)} ${u.phone?'&bull; '+u.phone:''}</p>
+  el.innerHTML=list.map(u=>{
+    const nk=u.nok||{};
+    const roleCls=u.role==='admin'?'admin':u.role==='manager'?'manager':'staff';
+    return `<div class="sc">
+    <div class="sc-top">
+      <div class="sc-av" style="${u.role==='admin'?'background:var(--purple)':''}">${profAvatarInner(u)}</div>
+      <div style="min-width:0">
+        <div class="sc-name">${swEsc(u.name||'\u2014')}</div>
+        <div class="sc-badges"><span class="badge b-${roleCls}">${swEsc(u.role||'staff')}</span><span class="badge b-${u.status==='active'||!u.status?'active':'inactive'}">${swEsc(u.status||'active')}</span></div>
+      </div>
     </div>
-    <span class="badge b-${u.status==='active'?'active':'inactive'}">${u.status||'active'}</span>
-    <div style="display:flex;gap:4px;margin-left:8px">
-      <button class="btn btn-out btn-sm" title="Work report" onclick="openStaffWork('${u.id}')">&#128202;</button>
-      <button class="btn btn-amber btn-sm" onclick="editUser('${u.id}')">&#9998;</button>
+    <div class="sc-grid">
+      <div><label>Username</label><span>@${swEsc(u.username||'\u2014')}</span></div>
+      <div><label>Branch</label><span>${swEsc(getBranchName(u.branchId))}</span></div>
+      <div><label>Phone</label><span>${swEsc(u.phone||'--')}</span></div>
+      <div><label>Registered</label><span>${scDate(u.createdAt)}</span></div>
+      <div style="grid-column:1/-1"><label>Home Address</label><span>${swEsc(u.homeAddress||'--')}</span></div>
+      <div><label>Next of Kin</label><span>${swEsc(nk.name?nk.name+(nk.relationship?' ('+nk.relationship+')':''):'--')}</span></div>
+      <div><label>Next of Kin Phone</label><span>${swEsc(nk.phone||'--')}</span></div>
+    </div>
+    <div class="sc-act">
+      <button class="btn btn-navy btn-sm" title="Full profile" onclick="viewStaffProfile('${u.id}')">&#128100; View</button>
+      <button class="btn btn-out btn-sm" title="Work report" onclick="openStaffWork('${u.id}')">&#128202; Work</button>
+      <button class="btn btn-amber btn-sm" onclick="editUser('${u.id}')">&#9998; Edit</button>
       <button class="btn btn-red btn-sm" onclick="deleteUser('${u.id}')">&#128465;</button>
     </div>
-  </div>`).join('');
+  </div>`}).join('');
 }
 function toggleBranchField(){
   const role=document.getElementById('um-role').value;
@@ -3710,12 +3758,26 @@ function openUserModal(editId){
     document.getElementById('um-branch').value=u.branchId||'';
     document.getElementById('um-phone').value=u.phone||'';
     document.getElementById('um-status').value=u.status||'active';
+    const nk=u.nok||{};
+    document.getElementById('um-gender').value=u.gender||'';
+    document.getElementById('um-dob').value=u.dob||'';
+    document.getElementById('um-marital').value=u.marital||'';
+    document.getElementById('um-email').value=u.email||'';
+    document.getElementById('um-nin').value=u.nin||'';
+    document.getElementById('um-address').value=u.homeAddress||'';
+    document.getElementById('um-employed').value=u.dateEmployed||'';
+    document.getElementById('um-nok-name').value=nk.name||'';
+    document.getElementById('um-nok-rel').value=nk.relationship||'';
+    document.getElementById('um-nok-phone').value=nk.phone||'';
+    document.getElementById('um-nok-addr').value=nk.address||'';
     if(passFg){passFg.querySelector('label').textContent='New Password (leave blank to keep)'}
   } else {
     ['um-name','um-username','um-pass','um-phone'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('um-role').value='staff';
     document.getElementById('um-branch').value='';
     document.getElementById('um-status').value='active';
+    ['um-gender','um-dob','um-marital','um-email','um-nin','um-address','um-nok-name','um-nok-rel','um-nok-phone','um-nok-addr'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('um-employed').value=td();
     if(passFg){passFg.querySelector('label').textContent='Password *'}
   }
   setupUserModalForRole();
@@ -3760,6 +3822,19 @@ function saveUser(){
     name, username, role,
     branchId: role==='admin' ? '' : branchId,
     phone, status,
+    gender:document.getElementById('um-gender').value,
+    dob:document.getElementById('um-dob').value,
+    marital:document.getElementById('um-marital').value,
+    email:document.getElementById('um-email').value.trim(),
+    nin:document.getElementById('um-nin').value.trim(),
+    homeAddress:document.getElementById('um-address').value.trim(),
+    dateEmployed:document.getElementById('um-employed').value,
+    nok:{
+      name:document.getElementById('um-nok-name').value.trim(),
+      relationship:document.getElementById('um-nok-rel').value.trim(),
+      phone:document.getElementById('um-nok-phone').value.trim(),
+      address:document.getElementById('um-nok-addr').value.trim()
+    },
     updatedAt:new Date().toISOString()
   };
   if(umPhoto!==undefined)data.photo=umPhoto;
@@ -3770,7 +3845,7 @@ function saveUser(){
   showLoader('Saving staff account...');
   const op = id
     ? db.collection('staff_users').doc(id).set(data,{merge:true})
-    : db.collection('staff_users').add({...data,createdAt:new Date().toISOString()});
+    : db.collection('staff_users').add({...data,createdAt:new Date().toISOString(),registeredBy:currentSession.name||currentSession.username||'admin'});
 
   op.then(ref=>{
     hideLoader();
@@ -3779,7 +3854,7 @@ function saveUser(){
       if(u)Object.assign(u,data);
     } else {
       const newId = ref.id;
-      allUsers.push({id:newId,...data,createdAt:new Date().toISOString()});
+      allUsers.push({id:newId,...data,createdAt:new Date().toISOString(),registeredBy:currentSession.name||currentSession.username||'admin'});
       console.log('[Zmonie] Staff saved with Firestore ID:', newId);
     }
     closeModal('user-modal');
@@ -9220,6 +9295,47 @@ function swCanView(u){
 }
 function swChips(cur,fn){
   return [['week','This Week'],['lastweek','Last Week'],['month','This Month'],['lastmonth','Last Month'],['custom','Custom']].map(([k,l])=>'<button class="sw-chip'+(cur===k?' on':'')+'" onclick="'+fn+'(\''+k+'\')">'+l+'</button>').join('');
+}
+function scDate(iso){
+  if(!iso)return '--';
+  const d=new Date(String(iso).length<=10?iso+'T00:00:00':iso);
+  if(isNaN(d))return '--';
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+function scAge(dob){
+  if(!dob)return '';
+  const d=new Date(dob+'T00:00:00');if(isNaN(d))return '';
+  const n=new Date();let a=n.getFullYear()-d.getFullYear();
+  if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))a--;
+  return a>0?' ('+a+' yrs)':'';
+}
+function viewStaffProfile(id){
+  const u=allUsers.find(x=>x.id===id);
+  if(!u||!(currentSession.role==='admin'||swCanView(u))){toast('Access denied','e');return}
+  const nk=u.nok||{};
+  const it=(l,val,full)=>'<div class="iitem"'+(full?' style="grid-column:1/-1"':'')+'><label>'+l+'</label><p>'+swEsc(val||'--')+'</p></div>';
+  const roleCls=u.role==='admin'?'admin':u.role==='manager'?'manager':'staff';
+  document.getElementById('staff-profile-body').innerHTML=
+    '<div style="text-align:center;margin-bottom:12px"><div style="width:96px;height:96px;border-radius:50%;margin:0 auto 8px;overflow:hidden;background:#1e3a5f;color:#fff;display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:800;border:3px solid #c8973a">'+profAvatarInner(u)+'</div>'+
+    '<div style="font-weight:800;font-size:1.1rem">'+swEsc(u.name||'')+'</div>'+
+    '<div style="margin-top:5px;display:flex;gap:6px;justify-content:center"><span class="badge b-'+roleCls+'">'+swEsc(u.role||'staff')+'</span><span class="badge b-'+(u.status==='inactive'?'inactive':'active')+'">'+swEsc(u.status||'active')+'</span></div></div>'+
+    '<div class="sh">Account</div><div class="info-grid">'+
+      it('Username','@'+(u.username||''))+it('Branch',getBranchName(u.branchId))+
+      it('Registered On',scDate(u.createdAt))+it('Registered By',u.registeredBy||'--')+
+    '</div>'+
+    '<div class="sh">Personal Details</div><div class="info-grid">'+
+      it('Phone',u.phone)+it('Email',u.email)+it('Gender',u.gender)+it('Marital Status',u.marital)+
+      it('Date of Birth',u.dob?scDate(u.dob)+scAge(u.dob):'')+it('NIN / ID Number',u.nin)+
+      it('Home Address',u.homeAddress,true)+
+    '</div>'+
+    '<div class="sh">Employment</div><div class="info-grid">'+
+      it('Date Employed',u.dateEmployed?scDate(u.dateEmployed):'')+it('Last Updated',scDate(u.updatedAt))+
+    '</div>'+
+    '<div class="sh">Next of Kin</div><div class="info-grid">'+
+      it('Name',nk.name)+it('Relationship',nk.relationship)+it('Phone',nk.phone)+it('Address',nk.address)+
+    '</div>'+
+    '<div class="btn-row no-print" style="margin-top:14px"><button class="btn btn-out" onclick="closeModal(\'staff-profile-modal\');openStaffWork(\''+u.id+'\')">&#128202; Work Report</button><button class="btn btn-amber" onclick="closeModal(\'staff-profile-modal\');editUser(\''+u.id+'\')">&#9998; Edit</button></div>';
+  showModal('staff-profile-modal');
 }
 function openStaffWork(id,keep){
   const u=allUsers.find(x=>x.id===id);
