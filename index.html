@@ -1866,14 +1866,14 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
     <!-- SETTINGS -->
     <div class="page-section" id="page-settings">
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">
-        <div class="card" style="margin-bottom:0">
+        <div class="card admin-only-card" style="margin-bottom:0">
           <div class="card-title">&#128274; Change Admin PIN</div>
           <div class="fg" style="margin-bottom:10px"><label>Current PIN</label><input type="password" id="s-old" maxlength="6" placeholder="Current PIN"/></div>
           <div class="fg" style="margin-bottom:10px"><label>New PIN</label><input type="password" id="s-new" maxlength="6" placeholder="New PIN (4-6 digits)"/></div>
           <div class="fg" style="margin-bottom:14px"><label>Confirm New PIN</label><input type="password" id="s-conf" maxlength="6" placeholder="Confirm new PIN"/></div>
           <button class="btn btn-navy" onclick="changePin()">&#128274; Update PIN</button>
         </div>
-        <div class="card" style="margin-bottom:0">
+        <div class="card admin-only-card" style="margin-bottom:0">
           <div class="card-title">&#128190; Backup &amp; Restore</div>
           <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px">Download all loan records as a JSON backup file.</p>
           <div class="btn-row" style="margin-top:0">
@@ -1882,7 +1882,7 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
             <input type="file" id="rst-file" accept=".json" style="display:none" onchange="restoreData(this)"/>
           </div>
         </div>
-        <div class="card" style="margin-bottom:0">
+        <div class="card admin-only-card" style="margin-bottom:0">
           <div class="card-title">&#8505; System Information</div>
           <div class="info-grid" style="margin-top:0">
             <div class="iitem"><label>System</label><p>Zmonie v3.0</p></div>
@@ -2678,6 +2678,7 @@ function startApp(){
   document.querySelectorAll('.admin-only-input').forEach(el=>el.style.display=isAdmin?'':'none');
   document.querySelectorAll('.admin-only-field').forEach(el=>el.style.display=isAdmin?'':'none');
   document.querySelectorAll('.staff-only-card').forEach(el=>el.style.display=!isAdmin?'':'none');
+  document.querySelectorAll('.admin-only-card').forEach(el=>el.style.display=isAdmin?'':'none');
 
   // Always land on dashboard after login
   // Reset all pages to inactive first so no leftover state shows
@@ -3050,7 +3051,7 @@ function renderApp(list){
     const tr=getTR(l),bal=getBal(l),od=isOverdue(l);
     return `<tr ${od?'style="background:#fff5f5"':''}>
       <td><strong>${l.loanId||l.id}</strong></td>
-      <td>${l.photo?`<img src="${l.photo}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:5px;border:1px solid var(--gold)" alt=""/>`:''}${l.name||''}${od?'<span class="ndot"></span>':''}</td>
+      <td>${l.photo?`<img src="${l.photo}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:5px;border:1px solid var(--gold)" alt=""/>`:''}${l.name||''}${od?'<span class="ndot"></span>':''}${regTag(l)}</td>
       <td>${l.phone||''}</td>
       <td><span style="font-size:.72rem;background:var(--bg);padding:2px 7px;border-radius:4px;border:1px solid var(--border)">${getBranchName(l.branchId)}</span></td>
       <td>&#8358;${fmt(l.amount)}</td>
@@ -3091,7 +3092,7 @@ function renderRep(list){
     const cls=pct<30?'dng':pct<70?'warn':'';
     return `<tr ${od?'style="background:#fff5f5"':''}>
       <td><strong>${l.loanId||l.id}</strong></td>
-      <td>${l.name||''}${od?'<span class="ndot"></span>':''}</td>
+      <td>${l.name||''}${od?'<span class="ndot"></span>':''}${regTag(l)}</td>
       <td>${l.phone||''}</td>
       <td><span style="font-size:.72rem;background:var(--bg);padding:2px 7px;border-radius:4px;border:1px solid var(--border)">${getBranchName(l.branchId)}</span></td>
       <td>${l.repayplan||'—'}</td>
@@ -3417,7 +3418,7 @@ function viewProfile(id){
       <div class="iitem"><label>Application Date</label><p>${l.appdate||'—'}</p></div>
       <div class="iitem"><label>Maturity Date</label><p>${l.maturityDateStr||l.maturityDate||'—'}</p></div>
       <div class="iitem"><label>Branch</label><p>&#127970; ${getBranchName(l.branchId)}</p></div>
-      <div class="iitem"><label>Created By</label><p>${l.createdBy||'—'}</p></div>
+      <div class="iitem"><label>Registered By</label><p>${swEsc(regByName(l))}</p></div>
     </div>
     ${(l.g1&&l.g1.name)?`
     <div class="sh">Guarantor 1</div>
@@ -3848,7 +3849,7 @@ function exportExcel(){
       'Total Paid':pd,'Balance':bal,'Repayment Plan':l.repayplan,
       'Duration':l.duration,'App Date':l.appdate,'Maturity Date':l.maturityDate,
       'Status':isOverdue(l)?'Overdue':l.status,'Purpose':l.purpose,
-      'Created By':l.createdBy||'',
+      'Registered By':regByName(l),
       'G1 Name':(l.g1||{}).name,'G1 Phone':(l.g1||{}).phone,
       'G2 Name':(l.g2||{}).name,'G2 Phone':(l.g2||{}).phone,
     };
@@ -3861,6 +3862,7 @@ function exportExcel(){
 
 // ===== BACKUP & RESTORE =====
 function backupData(){
+  if(currentSession.role!=='admin'){toast('Admin access required','e');return}
   const blob=new Blob([JSON.stringify({loans:allLoans,branches:allBranches,users:allUsers.map(u=>{const{password,...rest}=u;return rest}),exportDate:new Date().toISOString(),version:'3.0'})],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='Zmonie_Backup_'+td()+'.json';a.click();
@@ -4491,7 +4493,7 @@ function renderEB(list){
     const paid=ebGetPaid(e), bal=ebGetBal(e), od=ebIsOverdue(e);
     return '<tr '+(od?'style="background:#fff5f5"':'')+'>'+
       '<td><strong>'+e.ebId+'</strong></td>'+
-      '<td>'+(e.photo?'<img src="'+e.photo+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;border:1px solid #0d9488" alt=""/>':'')+e.name+'</td>'+
+      '<td>'+(e.photo?'<img src="'+e.photo+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;border:1px solid #0d9488" alt=""/>':'')+e.name+regTag(e)+'</td>'+
       '<td>'+e.phone+'</td>'+
       '<td><span style="font-size:.68rem;background:#f0fdf4;padding:2px 6px;border-radius:4px;border:1px solid #bbf7d0">'+getBranchName(e.branchId)+'</span></td>'+
       '<td><strong>'+e.product+'</strong><br/><span style="font-size:.68rem;color:var(--muted)">'+( e.proddesc||'')+'</span></td>'+
@@ -4633,7 +4635,7 @@ function renderCust(list){
   tb.innerHTML=list.slice().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).map(c=>
     '<tr>'+
     '<td><strong>'+c.regNo+'</strong></td>'+
-    '<td>'+(c.photo?'<img src="'+c.photo+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;border:1px solid #0f2342" alt=""/>':'')+c.name+'</td>'+
+    '<td>'+(c.photo?'<img src="'+c.photo+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;border:1px solid #0f2342" alt=""/>':'')+c.name+regTag(c)+'</td>'+
     '<td>'+(c.phone||'--')+'</td>'+
     '<td>'+(c.address||'--')+'</td>'+
     '<td>'+(c.occupation||'--')+'</td>'+
@@ -4761,6 +4763,7 @@ function openCustomerProfile(id){
     '<div class="iitem"><label>Age</label><p>'+(c.age||'--')+'</p></div>'+
     '<div class="iitem"><label>ID</label><p>'+((c.idtype||'')+' '+(c.idnum||'')).trim()+(c.idtype||c.idnum?'':'--')+'</p></div>'+
     '<div class="iitem"><label>Registered</label><p>'+(c.createdAt?c.createdAt.slice(0,10):'--')+'</p></div>'+
+    '<div class="iitem"><label>Registered By</label><p>'+swEsc(regByName(c))+'</p></div>'+
     '</div>'+
     (c.nokName?('<div class="sh">&#128101; Next of Kin</div>'+
       '<div class="info-grid" style="margin-top:0">'+
@@ -4925,6 +4928,7 @@ function viewEBProfile(id){
     '<div class="iitem"><label>Agreement Date</label><p>'+(e.agrdate||'--')+'</p></div>'+
     '<div class="iitem"><label>Due Date</label><p>'+(e.dueDate||'--')+'</p></div>'+
     '<div class="iitem"><label>Branch</label><p>'+getBranchName(e.branchId)+'</p></div>'+
+    '<div class="iitem"><label>Registered By</label><p>'+swEsc(regByName(e))+'</p></div>'+
     '</div>'+
     ebGCard(e,1)+
     '<div class="sh">Payment History ('+(e.payments||[]).length+' records)</div>'+
@@ -5062,7 +5066,7 @@ function exportEasyBuyExcel(){
     'Total Paid':parseFloat(e.initial||0)+ebGetPaid(e),
     'Balance':ebGetBal(e),'Plan':e.plan,'Duration':e.duration,
     'Agreement Date':e.agrdate,'Due Date':e.dueDate,'Status':e.status,
-    'Created By':e.createdBy
+    'Registered By':regByName(e)
   }));
   const ws=XLSX.utils.json_to_sheet(rows);
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'EasyBuy');
@@ -5098,7 +5102,7 @@ function renderINV(list){
     const paid=invGetPaid(i), bal=invGetBal(i);
     return '<tr>'+
       '<td><strong>'+i.invId+'</strong></td>'+
-      '<td>'+(i.photo?'<img src="'+i.photo+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;border:1px solid #7c3aed" alt=""/>':'')+i.name+'</td>'+
+      '<td>'+(i.photo?'<img src="'+i.photo+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;border:1px solid #7c3aed" alt=""/>':'')+i.name+regTag(i)+'</td>'+
       '<td>'+i.phone+'</td>'+
       '<td><span style="font-size:.68rem;background:#f5f3ff;padding:2px 6px;border-radius:4px;border:1px solid #ddd6fe">'+getBranchName(i.branchId)+'</span></td>'+
       '<td style="font-weight:700">&#8358;'+fmt(amt)+'</td>'+
@@ -5243,6 +5247,7 @@ function viewINVProfile(id){
     '<div class="iitem"><label>Start Date</label><p>'+(i.startdate||'--')+'</p></div>'+
     '<div class="iitem"><label>Maturity Date</label><p>'+(i.maturityDate||'--')+'</p></div>'+
     '<div class="iitem"><label>Branch</label><p>'+getBranchName(i.branchId)+'</p></div>'+
+    '<div class="iitem"><label>Registered By</label><p>'+swEsc(regByName(i))+'</p></div>'+
     '</div>'+
     '<div class="sh">&#127981; Bank Details (Monthly Return Payment) <button class="btn btn-out btn-sm no-print" style="margin-left:8px" onclick="openINVBankEdit(\''+i.id+'\')">&#9998; '+((i.bank||i.account)?'Edit':'Add')+'</button></div>'+
     '<div class="info-grid" style="margin-top:0">'+
@@ -5555,7 +5560,7 @@ function exportInvestmentExcel(){
     'Expected Return':invGetReturn(i),'Total at Maturity':invGetTotal(i),
     'Returns Paid':invGetPaid(i),'Outstanding':invGetBal(i),
     'Duration':i.duration,'Start Date':i.startdate,'Maturity Date':i.maturityDate,
-    'Status':i.status,'Created By':i.createdBy,
+    'Status':i.status,'Registered By':regByName(i),
     'NOK Name':(i.nok&&i.nok.name)||'',
     'NOK Relationship':(i.nok&&i.nok.relationship)||'',
     'NOK Phone':(i.nok&&i.nok.phone)||'',
@@ -6041,7 +6046,7 @@ function renderFD(list){
     var displayStatus=isMat&&f.status==='Active'?'Matured':f.status;
     return '<tr '+(isMat?'style="background:#f0fdf4"':'')+'>'+
       '<td><strong>'+f.fdId+'</strong></td>'+
-      '<td>'+(f.photo?'<img src="'+f.photo+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;border:1px solid #0369a1" alt=""/>':'')+f.name+'</td>'+
+      '<td>'+(f.photo?'<img src="'+f.photo+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;border:1px solid #0369a1" alt=""/>':'')+f.name+regTag(f)+'</td>'+
       '<td>'+f.phone+'</td>'+
       '<td><span style="font-size:.68rem;background:#e0f2fe;padding:2px 6px;border-radius:4px;border:1px solid #bae6fd">'+getBranchName(f.branchId)+'</span></td>'+
       '<td style="font-weight:700">&#8358;'+fmt(amt)+'</td>'+
@@ -6236,6 +6241,7 @@ function viewFDProfile(id){
     '<div class="iitem"><label>Start Date</label><p>'+f.startdate+'</p></div>'+
     '<div class="iitem"><label>Maturity Date</label><p>'+f.maturityDate+'</p></div>'+
     '<div class="iitem"><label>Branch</label><p>'+getBranchName(f.branchId)+'</p></div>'+
+    '<div class="iitem"><label>Registered By</label><p>'+swEsc(regByName(f))+'</p></div>'+
     '</div>'+
     '<div class="sh">Next of Kin</div>'+
     '<div class="info-grid" style="margin-top:0">'+
@@ -6388,7 +6394,7 @@ function exportFDExcel(){
       'Status':f.status,
       'Early Withdrawal Penalty':amt*0.05,'Early Payout':amt*0.95,
       'NOK Name':(f.nok&&f.nok.name)||'','NOK Relationship':(f.nok&&f.nok.relationship)||'',
-      'NOK Phone':(f.nok&&f.nok.phone)||'','Created By':f.createdBy
+      'NOK Phone':(f.nok&&f.nok.phone)||'','Registered By':regByName(f)
     };
   });
   var ws=XLSX.utils.json_to_sheet(rows);
@@ -6515,7 +6521,7 @@ function renderCTB(list){
     const total=ctbGetPaidTotal(c), missed=ctbMissedCount(c), next=ctbNextDue(c), od=ctbIsOverdue(c);
     return '<tr '+(od?'style="background:#fff5f5"':'')+'>'+
       '<td><strong>'+c.ctbId+'</strong></td>'+
-      '<td>'+(c.photo?'<img src="'+c.photo+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;border:1px solid #16a34a" alt=""/>':'')+c.name+'</td>'+
+      '<td>'+(c.photo?'<img src="'+c.photo+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;border:1px solid #16a34a" alt=""/>':'')+c.name+regTag(c)+'</td>'+
       '<td>'+c.phone+'</td>'+
       '<td><span style="font-size:.68rem;background:#f0fdf4;padding:2px 6px;border-radius:4px;border:1px solid #bbf7d0">'+getBranchName(c.branchId)+'</span></td>'+
       '<td>'+c.type+'</td>'+
@@ -6625,6 +6631,7 @@ function viewCTBProfile(id){
     '<div class="iitem"><label>Contribution Amount</label><p>&#8358;'+fmt(c.amount)+'</p></div>'+
     '<div class="iitem"><label>Registration Date</label><p>'+(c.regDate||'--')+'</p></div>'+
     '<div class="iitem"><label>Branch</label><p>'+getBranchName(c.branchId)+'</p></div>'+
+    '<div class="iitem"><label>Registered By</label><p>'+swEsc(regByName(c))+'</p></div>'+
     '<div class="iitem"><label>Status</label><p>'+c.status+'</p></div>'+
     '</div>'+
     '<div class="sh">&#128101; Next of Kin Details</div>'+
@@ -7002,7 +7009,7 @@ function renderSAL(list){
     const total=salGetPaidTotal(c), missed=salMissedCount(c), next=salNextDue(c), od=salIsOverdue(c);
     return '<tr '+(od?'style="background:#fff5f5"':'')+'>'+
       '<td><strong>'+c.salId+'</strong></td>'+
-      '<td>'+(c.photo?'<img src="'+c.photo+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;border:1px solid #0369a1" alt=""/>':'')+c.name+'</td>'+
+      '<td>'+(c.photo?'<img src="'+c.photo+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;border:1px solid #0369a1" alt=""/>':'')+c.name+regTag(c)+'</td>'+
       '<td>'+c.phone+'</td>'+
       '<td>'+(c.employer||'--')+'</td>'+
       '<td><span style="font-size:.68rem;background:#f0f7ff;padding:2px 6px;border-radius:4px;border:1px solid #bae6fd">'+getBranchName(c.branchId)+'</span></td>'+
@@ -7115,6 +7122,7 @@ function viewSALProfile(id){
     '<div class="iitem"><label>Monthly Contribution</label><p>&#8358;'+fmt(c.amount)+'</p></div>'+
     '<div class="iitem"><label>Registration Date</label><p>'+(c.regDate||'--')+'</p></div>'+
     '<div class="iitem"><label>Branch</label><p>'+getBranchName(c.branchId)+'</p></div>'+
+    '<div class="iitem"><label>Registered By</label><p>'+swEsc(regByName(c))+'</p></div>'+
     '<div class="iitem"><label>Status</label><p>'+c.status+'</p></div>'+
     '</div>'+
     '<div class="sh">&#128101; Next of Kin Details</div>'+
@@ -7616,7 +7624,7 @@ function renderCES(list){
   tb.innerHTML=list.slice().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).map(c=>
     '<tr '+(cesIsOverdue(c)?'style="background:#fff5f5"':'')+'>'+
     '<td><strong>'+c.cesId+'</strong></td>'+
-    '<td>'+c.name+'</td>'+
+    '<td>'+c.name+regTag(c)+'</td>'+
     '<td>'+(c.childName||'--')+'</td>'+
     '<td>'+(c.school||'--')+'</td>'+
     '<td>&#8358;'+fmt(c.approvedAmount||c.requestedAmount||0)+'</td>'+
@@ -8080,6 +8088,7 @@ function viewCESProfile(id){
       '<div class="iitem"><label>Occupation</label><p>'+(c.occupation||'--')+'</p></div>'+
       '<div class="iitem"><label>Marital Status</label><p>'+c.maritalStatus+'</p></div>'+
       '<div class="iitem"><label>Branch</label><p>'+getBranchName(c.branchId)+'</p></div>'+
+      '<div class="iitem"><label>Registered By</label><p>'+swEsc(regByName(c))+'</p></div>'+
       '</div>'+
       (c.maritalStatus==='Married'?('<div class="sh">&#128141; Spouse</div><div class="info-grid" style="margin-top:0">'+
         '<div class="iitem"><label>Name</label><p>'+(c.spouseName||'--')+'</p></div>'+
@@ -9088,6 +9097,20 @@ function agQuickService(sel){
 // =====================================================
 let profAdminPhoto='', profPending=null, swState={id:null,period:'week',from:'',to:''}, twState={period:'week',from:'',to:''};
 const swEsc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function regByName(r){
+  if(!r)return '\u2014';
+  const u=r.createdBy||'';
+  if(!u&&!r.createdByName)return '\u2014';
+  if(typeof u==='string'&&u.indexOf('agent:')===0){
+    const a=(typeof allAgents!=='undefined'&&allAgents.find(x=>x.username===u.slice(6)));
+    return (a?a.name:(r.agentName||u.slice(6)))+' (Agent)';
+  }
+  if(u==='admin')return 'Admin';
+  const st=allUsers.find(x=>x.username===u||x.id===u);
+  if(st)return st.name+(st.role==='manager'?' (Manager)':'');
+  return r.createdByName||u||'\u2014';
+}
+function regTag(r){return '<div style="font-size:.62rem;color:var(--muted);font-weight:600;margin-top:1px">Registered by: '+swEsc(regByName(r))+'</div>'}
 function profInitial(n){return swEsc((n||'?').trim()[0]||'?').toUpperCase()}
 function profAvatarInner(u){return u&&u.photo?'<img src="'+u.photo+'" alt=""/>':profInitial(u&&u.name)}
 function profMyPhoto(){
@@ -9251,16 +9274,51 @@ function openTeamWork(){
 }
 function twSet(p){twState.period=p;renderTW()}
 function twDates(){twState.from=v('tw-from');twState.to=v('tw-to');renderTW()}
-function renderTW(){
+function twData(){
   const r=swRange(twState.period,twState.from,twState.to);
   const list=allUsers.filter(u=>u.role!=='admin'&&swCanView(u)&&u.status!=='inactive');
   const rows=list.map(u=>({u,d:swCompute(u,r.from,r.to)})).sort((a,b)=>b.d.logs.length-a.d.logs.length);
+  return {r,rows};
+}
+function renderTW(){
+  const {r,rows}=twData();
   document.getElementById('tw-body').innerHTML=
     '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+swChips(twState.period,'twSet')+'</div>'+
     (twState.period==='custom'?'<div style="display:flex;gap:8px;margin-bottom:8px"><input type="date" id="tw-from" value="'+r.from+'" onchange="twDates()"/><input type="date" id="tw-to" value="'+r.to+'" onchange="twDates()"/></div>':'')+
     '<div style="font-size:.76rem;color:var(--muted);margin-bottom:10px">'+r.label+': <strong>'+r.from+'</strong> to <strong>'+r.to+'</strong> &mdash; tap a staff member for full details</div>'+
+    '<div class="no-print" style="display:flex;gap:8px;margin-bottom:10px"><button class="btn btn-gold btn-sm" onclick="twDownload()">&#11015; Download Report (Excel)</button><button class="btn btn-out btn-sm" onclick="twPrint()">&#128424; Print</button></div>'+
     (rows.length?'<div class="tbl-wrap"><table><thead><tr><th>Staff</th><th>Actions</th><th>Records</th><th>Payments</th><th>Collected</th></tr></thead><tbody>'+
     rows.map(({u,d})=>'<tr style="cursor:pointer" onclick="closeModal(\'tw-modal\');openStaffWork(\''+u.id+'\')"><td><div style="display:flex;align-items:center;gap:8px"><div class="user-avatar" style="width:30px;height:30px;font-size:.75rem">'+profAvatarInner(u)+'</div><div><strong>'+swEsc(u.name)+'</strong><div style="font-size:.66rem;color:var(--muted)">'+swEsc(getBranchName(u.branchId))+'</div></div></div></td><td>'+d.logs.length+'</td><td>'+d.createdTotal+'</td><td>'+d.pCount+'</td><td>&#8358;'+fmt(d.pAmt)+'</td></tr>').join('')+'</tbody></table></div>':'<p style="text-align:center;color:var(--muted);padding:16px">No staff to show.</p>');
+}
+function twDownload(){
+  if(currentSession.role!=='admin'&&currentSession.role!=='manager'){toast('Admin or manager only','e');return}
+  const {r,rows}=twData();
+  if(!rows.length){toast('No staff to export','w');return}
+  const cats=rows[0].d.created.map(c=>c.label);
+  const q=x=>'"'+String(x==null?'':x).replace(/"/g,'""')+'"';
+  const head=['Staff Name','Username','Role','Branch','Period','From','To','Actions Logged','Days Active','Records Created'].concat(cats,['Payments Recorded','Amount Collected (NGN)']);
+  const lines=[head.map(q).join(',')];
+  const tot=new Array(head.length-10).fill(0);
+  rows.forEach(({u,d})=>{
+    const nums=[d.logs.length,d.activeDays,d.createdTotal].concat(d.created.map(c=>c.n),[d.pCount,d.pAmt]);
+    nums.forEach((n,i)=>tot[i]+=n);
+    lines.push([u.name,u.username,u.role||'staff',getBranchName(u.branchId),r.label,r.from,r.to].map(q).concat(nums).join(','));
+  });
+  lines.push(['TOTAL','','','','',r.from,r.to].map(q).concat(tot).join(','));
+  const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='Team_Work_Report_'+r.from+'_to_'+r.to+'.csv';
+  document.body.appendChild(a);a.click();a.remove();
+  logAudit('Team Work Report Downloaded','Team work report '+r.from+' to '+r.to+' downloaded.');
+  toast('Team report downloaded','s');
+}
+function twPrint(){
+  const {r,rows}=twData();
+  const win=window.open('','_blank','width=800,height=900');if(!win){toast('Allow pop-ups to print','e');return}
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Team Work Report</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#1e293b;font-size:13px}table{width:100%;border-collapse:collapse;margin-top:10px}td,th{padding:7px 8px;border-bottom:1px solid #e2e8f0;text-align:left}th{background:#f1f5f9}</style></head><body><h2>Zmonie &mdash; Team Work Report</h2><p>'+r.label+': <strong>'+r.from+'</strong> to <strong>'+r.to+'</strong></p><table><thead><tr><th>Staff</th><th>Branch</th><th>Actions</th><th>Days Active</th><th>Records</th><th>Payments</th><th>Collected</th></tr></thead><tbody>'+
+    rows.map(({u,d})=>'<tr><td>'+swEsc(u.name)+'</td><td>'+swEsc(getBranchName(u.branchId))+'</td><td>'+d.logs.length+'</td><td>'+d.activeDays+'</td><td>'+d.createdTotal+'</td><td>'+d.pCount+'</td><td>&#8358;'+fmt(d.pAmt)+'</td></tr>').join('')+
+    '</tbody></table><scr'+'ipt>setTimeout(function(){window.print()},400)</scr'+'ipt></body></html>');
+  win.document.close();
 }
 (function(){const o=loadAll;window.loadAll=async function(){await o.apply(this,arguments);try{await profInit()}catch(e){}}})();
 
