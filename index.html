@@ -212,6 +212,7 @@ tbody tr:hover{background:#f8fafc}
 .sc-grid span{font-size:.78rem;font-weight:600;color:var(--navy);word-break:break-word}
 .sc-act{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .sc-act .btn{justify-content:center;padding:8px 4px}
+.sc-wrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
 body.agent-mode #hdr-avatar{cursor:default}
 .sw-chip{padding:6px 11px;border-radius:16px;border:1.5px solid var(--border,#e2e8f0);background:#fff;font-size:.74rem;font-weight:700;cursor:pointer;color:var(--navy,#0f2342)}
 .sw-chip.on{background:#0f2342;color:#fff;border-color:#0f2342}
@@ -521,10 +522,11 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
             <div class="fg"><label>Address *</label><input required id="cust-address" placeholder="Residential address"/></div>
             <div class="fg"><label>Office Address</label><input id="cust-office" placeholder="Office / business address"/></div>
             <div class="fg"><label>Occupation / Business</label><input id="cust-occ" placeholder="Job title or business name"/></div>
-            <div class="fg"><label>ID Type</label><select id="cust-idtype"><option value="">Select</option><option>National ID (NIN)</option><option>Voter's Card</option><option>Driver's Licence</option><option>International Passport</option></select></div>
-            <div class="fg"><label>ID Number</label><input id="cust-idnum" placeholder="ID number"/></div>
+            <div class="fg"><label>ID Type (optional)</label><select id="cust-idtype"><option value="">Select</option><option>National ID (NIN)</option><option>Voter's Card</option><option>Driver's Licence</option><option>International Passport</option></select></div>
+            <div class="fg"><label>ID Number, e.g. NIN (optional)</label><input id="cust-idnum" placeholder="Can be supplied later"/></div>
           </div>
           <div class="sh">&#128247; Photo &amp; Identification</div>
+          <p style="font-size:.76rem;color:var(--muted);margin:-2px 0 10px">Means of identification (NIN, voter's card, etc.) is <strong>optional</strong> at registration. The customer will supply it later, when they apply for any of our services.</p>
           <div class="form-grid">
             <div class="fg"><label>Passport Photo</label>
               <div class="photo-up" onclick="document.getElementById('cust-photo-file').click()">
@@ -534,7 +536,7 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
               <input type="file" id="cust-photo-file" accept="image/*" style="display:none" onchange="ebImgUp(this,'cust-photo-prev','cust-photo-data',500,0.75)"/>
               <input type="hidden" id="cust-photo-data"/>
             </div>
-            <div class="fg"><label>Means of Identification (Upload)</label>
+            <div class="fg"><label>Means of Identification (Upload, optional)</label>
               <div class="photo-up" onclick="document.getElementById('cust-idpic-file').click()">
                 <img id="cust-idpic-prev" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='55%25' font-size='28' text-anchor='middle' fill='%2394a3b8'%3E%F0%9F%AA%AA%3C/text%3E%3C/svg%3E" alt=""/>
                 <p>Click to upload ID</p>
@@ -602,8 +604,8 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
             <div class="fg"><label>Address *</label><input required id="eb-address" placeholder="Residential address"/></div>
             <div class="fg"><label>Office Address</label><input id="eb-office" placeholder="Office / business address"/></div>
             <div class="fg"><label>Occupation / Business</label><input id="eb-occ" placeholder="Job title or business"/></div>
-            <div class="fg"><label>ID Type</label><select id="eb-idtype"><option value="">Select</option><option>National ID (NIN)</option><option>Voter's Card</option><option>Driver's Licence</option><option>International Passport</option></select></div>
-            <div class="fg"><label>ID Number</label><input id="eb-idnum" placeholder="ID number"/></div>
+            <div class="fg"><label>ID Type *</label><select id="eb-idtype"><option value="">Select</option><option>National ID (NIN)</option><option>Voter's Card</option><option>Driver's Licence</option><option>International Passport</option></select></div>
+            <div class="fg"><label>ID Number *</label><input id="eb-idnum" placeholder="ID number"/></div>
             <div class="fg"><label>Means of Identification (Upload)</label>
               <div class="photo-up" onclick="document.getElementById('eb-idpic-file').click()">
                 <img id="eb-idpic-prev" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='55%25' font-size='28' text-anchor='middle' fill='%2394a3b8'%3E%F0%9F%AA%AA%3C/text%3E%3C/svg%3E" alt=""/>
@@ -735,8 +737,8 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
             <div class="fg"><label>Phone Number *</label><input required id="inv-phone" placeholder="08XXXXXXXXX"/></div>
             <div class="fg"><label>Address *</label><input required id="inv-address" placeholder="Residential address"/></div>
             <div class="fg"><label>Occupation</label><input id="inv-occ" placeholder="Occupation"/></div>
-            <div class="fg"><label>ID Type</label><select id="inv-idtype"><option value="">Select</option><option>National ID (NIN)</option><option>Voter's Card</option><option>Driver's Licence</option><option>International Passport</option></select></div>
-            <div class="fg"><label>ID Number</label><input id="inv-idnum" placeholder="ID number"/></div>
+            <div class="fg"><label>ID Type *</label><select id="inv-idtype"><option value="">Select</option><option>National ID (NIN)</option><option>Voter's Card</option><option>Driver's Licence</option><option>International Passport</option></select></div>
+            <div class="fg"><label>ID Number *</label><input id="inv-idnum" placeholder="ID number"/></div>
           </div>
           <div class="sh">&#127981; Investor Bank Details (for monthly return payment)</div>
           <div class="form-grid">
@@ -1353,10 +1355,10 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
             <div class="fg"><label>Phone Number *</label><input required id="fd-phone" placeholder="08XXXXXXXXX"/></div>
             <div class="fg"><label>Address *</label><input required id="fd-address" placeholder="Residential address"/></div>
             <div class="fg"><label>Occupation</label><input id="fd-occ" placeholder="Occupation"/></div>
-            <div class="fg"><label>ID Type</label>
+            <div class="fg"><label>ID Type *</label>
               <select id="fd-idtype"><option value="">Select</option><option>National ID (NIN)</option><option>Voter's Card</option><option>Driver's Licence</option><option>International Passport</option></select>
             </div>
-            <div class="fg"><label>ID Number</label><input id="fd-idnum" placeholder="ID number"/></div>
+            <div class="fg"><label>ID Number *</label><input id="fd-idnum" placeholder="ID number"/></div>
           </div>
           <div class="sh">&#128101; Next of Kin</div>
           <div class="form-grid">
@@ -1500,14 +1502,14 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
             <div class="fg"><label>Bank Name</label><input id="f-bank" placeholder="Bank name"/></div>
             <div class="fg"><label>Account Number</label><input id="f-acct" placeholder="Account number"/></div>
             <div class="fg"><label>Account Name</label><input id="f-acctname" placeholder="Account name"/></div>
-            <div class="fg"><label>ID Type</label>
+            <div class="fg"><label>ID Type *</label>
               <select id="f-idtype">
                 <option value="">Select ID type</option>
                 <option>National ID (NIN)</option><option>Voter's Card</option>
                 <option>Driver's Licence</option><option>International Passport</option>
               </select>
             </div>
-            <div class="fg"><label>ID Number</label><input id="f-idnum" placeholder="ID number"/></div>
+            <div class="fg"><label>ID Number *</label><input id="f-idnum" placeholder="ID number"/></div>
           </div>
           <div class="sh">&#127970; Branch Assignment</div>
           <div class="form-grid">
@@ -2032,11 +2034,12 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
         <div class="fg"><label>Home Address</label><input id="um-address" placeholder="Staff home address"/></div>
         <div class="sh" style="margin-top:6px">Employment</div>
         <div class="fg"><label>Date Employed</label><input type="date" id="um-employed"/></div>
-        <div class="sh" style="margin-top:6px">Next of Kin</div>
-        <div class="fg"><label>Next of Kin Name</label><input id="um-nok-name" placeholder="Full name"/></div>
-        <div class="fg"><label>Relationship</label><input id="um-nok-rel" placeholder="e.g. Spouse, Parent, Brother"/></div>
-        <div class="fg"><label>Next of Kin Phone</label><input id="um-nok-phone" placeholder="Phone number"/></div>
-        <div class="fg"><label>Next of Kin Address</label><input id="um-nok-addr" placeholder="Address"/></div>
+        <div class="sh" style="margin-top:6px">Guarantor Details</div>
+        <div class="fg"><label>Guarantor Full Name</label><input id="um-gr-name" placeholder="Guarantor full name"/></div>
+        <div class="fg"><label>Relationship to Staff</label><input id="um-gr-rel" placeholder="e.g. Uncle, Pastor, Employer"/></div>
+        <div class="fg"><label>Guarantor Phone Number</label><input id="um-gr-phone" placeholder="Guarantor phone number"/></div>
+        <div class="fg"><label>Guarantor Home Address</label><input id="um-gr-addr" placeholder="Guarantor home address"/></div>
+        <div class="fg"><label>Guarantor Occupation</label><input id="um-gr-occ" placeholder="Occupation / workplace"/></div>
       </div>
       <div class="btn-row">
         <button class="btn btn-navy" onclick="saveUser()">&#128190; Save Account</button>
@@ -2385,10 +2388,18 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
   </div>
 </div>
 
+<!-- AGENT EDIT -->
+<div class="overlay" id="agent-edit-modal">
+  <div class="modal" style="max-width:520px">
+    <div class="mhead"><h3>Edit Agent Details</h3><button class="mclose" onclick="closeModal('agent-edit-modal')">&times;</button></div>
+    <div class="mbody" id="age-body"></div>
+  </div>
+</div>
+
 <!-- STAFF FULL PROFILE -->
 <div class="overlay" id="staff-profile-modal">
   <div class="modal" style="max-width:560px">
-    <div class="mhead"><h3>Staff Profile</h3><button class="mclose" onclick="closeModal('staff-profile-modal')">&times;</button></div>
+    <div class="mhead"><h3 id="sp-title">Staff Profile</h3><button class="mclose" onclick="closeModal('staff-profile-modal')">&times;</button></div>
     <div class="mbody" id="staff-profile-body"></div>
   </div>
 </div>
@@ -3686,7 +3697,7 @@ function renderUsers(){
   const el=document.getElementById('users-list');if(!el)return;
   if(list.length===0){el.innerHTML='<p style="text-align:center;color:var(--muted);padding:20px">No staff accounts found.</p>';return}
   el.innerHTML=list.map(u=>{
-    const nk=u.nok||{};
+    const nk=u.guarantor||u.nok||{};
     const roleCls=u.role==='admin'?'admin':u.role==='manager'?'manager':'staff';
     return `<div class="sc">
     <div class="sc-top">
@@ -3702,8 +3713,8 @@ function renderUsers(){
       <div><label>Phone</label><span>${swEsc(u.phone||'--')}</span></div>
       <div><label>Registered</label><span>${scDate(u.createdAt)}</span></div>
       <div style="grid-column:1/-1"><label>Home Address</label><span>${swEsc(u.homeAddress||'--')}</span></div>
-      <div><label>Next of Kin</label><span>${swEsc(nk.name?nk.name+(nk.relationship?' ('+nk.relationship+')':''):'--')}</span></div>
-      <div><label>Next of Kin Phone</label><span>${swEsc(nk.phone||'--')}</span></div>
+      <div><label>Guarantor</label><span>${swEsc(nk.name?nk.name+(nk.relationship?' ('+nk.relationship+')':''):'--')}</span></div>
+      <div><label>Guarantor Phone</label><span>${swEsc(nk.phone||'--')}</span></div>
     </div>
     <div class="sc-act">
       <button class="btn btn-navy btn-sm" title="Full profile" onclick="viewStaffProfile('${u.id}')">&#128100; View</button>
@@ -3758,7 +3769,7 @@ function openUserModal(editId){
     document.getElementById('um-branch').value=u.branchId||'';
     document.getElementById('um-phone').value=u.phone||'';
     document.getElementById('um-status').value=u.status||'active';
-    const nk=u.nok||{};
+    const nk=u.guarantor||u.nok||{};
     document.getElementById('um-gender').value=u.gender||'';
     document.getElementById('um-dob').value=u.dob||'';
     document.getElementById('um-marital').value=u.marital||'';
@@ -3766,17 +3777,18 @@ function openUserModal(editId){
     document.getElementById('um-nin').value=u.nin||'';
     document.getElementById('um-address').value=u.homeAddress||'';
     document.getElementById('um-employed').value=u.dateEmployed||'';
-    document.getElementById('um-nok-name').value=nk.name||'';
-    document.getElementById('um-nok-rel').value=nk.relationship||'';
-    document.getElementById('um-nok-phone').value=nk.phone||'';
-    document.getElementById('um-nok-addr').value=nk.address||'';
+    document.getElementById('um-gr-name').value=nk.name||'';
+    document.getElementById('um-gr-rel').value=nk.relationship||'';
+    document.getElementById('um-gr-phone').value=nk.phone||'';
+    document.getElementById('um-gr-addr').value=nk.address||'';
+    document.getElementById('um-gr-occ').value=nk.occupation||'';
     if(passFg){passFg.querySelector('label').textContent='New Password (leave blank to keep)'}
   } else {
     ['um-name','um-username','um-pass','um-phone'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('um-role').value='staff';
     document.getElementById('um-branch').value='';
     document.getElementById('um-status').value='active';
-    ['um-gender','um-dob','um-marital','um-email','um-nin','um-address','um-nok-name','um-nok-rel','um-nok-phone','um-nok-addr'].forEach(id=>document.getElementById(id).value='');
+    ['um-gender','um-dob','um-marital','um-email','um-nin','um-address','um-gr-name','um-gr-rel','um-gr-phone','um-gr-addr','um-gr-occ'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('um-employed').value=td();
     if(passFg){passFg.querySelector('label').textContent='Password *'}
   }
@@ -3829,12 +3841,14 @@ function saveUser(){
     nin:document.getElementById('um-nin').value.trim(),
     homeAddress:document.getElementById('um-address').value.trim(),
     dateEmployed:document.getElementById('um-employed').value,
-    nok:{
-      name:document.getElementById('um-nok-name').value.trim(),
-      relationship:document.getElementById('um-nok-rel').value.trim(),
-      phone:document.getElementById('um-nok-phone').value.trim(),
-      address:document.getElementById('um-nok-addr').value.trim()
+    guarantor:{
+      name:document.getElementById('um-gr-name').value.trim(),
+      relationship:document.getElementById('um-gr-rel').value.trim(),
+      phone:document.getElementById('um-gr-phone').value.trim(),
+      address:document.getElementById('um-gr-addr').value.trim(),
+      occupation:document.getElementById('um-gr-occ').value.trim()
     },
+    nok:null,
     updatedAt:new Date().toISOString()
   };
   if(umPhoto!==undefined)data.photo=umPhoto;
@@ -7496,7 +7510,11 @@ function cesDocSlots(c){
   let extra=(c.maritalStatus==='Single Mother'||c.maritalStatus==='Single Father')?CES_DOC_SINGLE_EXTRA:[];
   if(c.schoolLevel==='Creche'||c.schoolLevel==='Nursery')extra=extra.concat([{key:'child-birth-cert',label:"Child's Birth Certificate (Creche / Nursery)"}]);
   const sigs=c.maritalStatus==='Married'?CES_SIGS_MARRIED:CES_SIGS_SINGLE;
-  return {docs:CES_DOC_BASE.concat(extra), sigs};
+  // A single parent uploads only their own NIN and LASRRA card; married parents upload both.
+  let base=CES_DOC_BASE;
+  if(c.maritalStatus==='Single Mother')base=CES_DOC_BASE.filter(d=>d.key!=='father-nin'&&d.key!=='father-lasrra');
+  else if(c.maritalStatus==='Single Father')base=CES_DOC_BASE.filter(d=>d.key!=='mother-nin'&&d.key!=='mother-lasrra');
+  return {docs:base.concat(extra), sigs};
 }
 function round2(n){ return Math.round((n+Number.EPSILON)*100)/100; }
 function cesCalcFee(amount){
@@ -8607,23 +8625,35 @@ async function agRenderTab(){
 function agAgentsHtml(){
   const cnt={};allCustomers.forEach(c=>{if(c.agentId)cnt[c.agentId]=(cnt[c.agentId]||0)+1});
   const rows=allAgents.map(a=>{
-    const b=agBalances[a.id]||agBal({});
-    const btns=(a.status!=='active'?'<button class="btn btn-sm btn-navy" data-act="agstatus" data-id="'+a.id+'" data-status="active" onclick="agAct(this)">Activate</button>':'')+
+    const b=agBalances[a.id]||agBal({}),g=a.guarantor||{};
+    const sbtn=(a.status!=='active'?'<button class="btn btn-sm btn-navy" data-act="agstatus" data-id="'+a.id+'" data-status="active" onclick="agAct(this)">Activate</button>':'')+
       (a.status==='active'?'<button class="btn btn-sm btn-out" data-act="agstatus" data-id="'+a.id+'" data-status="suspended" onclick="agAct(this)">Suspend</button>':'')+
-      (a.status!=='deactivated'?'<button class="btn btn-sm btn-red" data-act="agstatus" data-id="'+a.id+'" data-status="deactivated" onclick="agAct(this)">Deactivate</button>':'')+
-      '<button class="btn btn-sm btn-out" data-act="agreset" data-id="'+a.id+'" onclick="agAct(this)">Reset</button>'+
-      '<label class="btn btn-sm btn-out" style="cursor:pointer" title="Change photo">&#128247;<input type="file" accept="image/*" style="display:none" onchange="agPhotoFor(this,\''+a.id+'\')"/></label>';
-    return '<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="user-avatar" style="width:30px;height:30px;font-size:.75rem">'+profAvatarInner(a)+'</div><strong>'+agEsc(a.name)+'</strong></div></td><td>'+agEsc(a.username)+'</td><td>'+agEsc(a.phone||'--')+'</td><td>'+agBadge(a.status)+'</td><td>'+(cnt[a.id]||0)+'</td><td>&#8358;'+fmt(b.net)+'</td><td>&#8358;'+fmt(b.available)+'</td><td>&#8358;'+fmt(b.reserved)+'</td><td>&#8358;'+fmt(b.withdrawn)+'</td><td><div style="display:flex;gap:4px;flex-wrap:wrap">'+btns+'</div></td></tr>';
+      (a.status!=='deactivated'?'<button class="btn btn-sm btn-red" data-act="agstatus" data-id="'+a.id+'" data-status="deactivated" onclick="agAct(this)">Deactivate</button>':'');
+    return '<div class="sc"><div class="sc-top"><div class="sc-av">'+profAvatarInner(a)+'</div><div style="min-width:0"><div class="sc-name">'+agEsc(a.name)+'</div><div class="sc-badges"><span class="badge" style="background:#ede9fe;color:#6d28d9">agent</span>'+agBadge(a.status)+'</div></div></div>'+
+      '<div class="sc-grid">'+
+      '<div><label>Username</label><span>@'+agEsc(a.username)+'</span></div>'+
+      '<div><label>Phone</label><span>'+agEsc(a.phone||'--')+'</span></div>'+
+      '<div><label>Registered</label><span>'+scDate(a.createdAt)+'</span></div>'+
+      '<div><label>Customers</label><span>'+(cnt[a.id]||0)+'</span></div>'+
+      '<div style="grid-column:1/-1"><label>Home Address</label><span>'+agEsc(a.homeAddress||'--')+'</span></div>'+
+      '<div><label>Guarantor</label><span>'+agEsc(g.name?g.name+(g.relationship?' ('+g.relationship+')':''):'--')+'</span></div>'+
+      '<div><label>Guarantor Phone</label><span>'+agEsc(g.phone||'--')+'</span></div>'+
+      '<div><label>Net Earned</label><span>&#8358;'+fmt(b.net)+'</span></div>'+
+      '<div><label>Available</label><span>&#8358;'+fmt(b.available)+'</span></div>'+
+      '</div>'+
+      '<div class="sc-act"><button class="btn btn-navy btn-sm" onclick="viewAgentProfile(\''+a.id+'\')">&#128100; View</button><button class="btn btn-amber btn-sm" onclick="openAgentEdit(\''+a.id+'\')">&#9998; Edit</button><button class="btn btn-out btn-sm" data-act="agreset" data-id="'+a.id+'" onclick="agAct(this)">Reset</button>'+
+      '<label class="btn btn-out btn-sm" style="cursor:pointer;justify-content:center" title="Change photo">&#128247;<input type="file" accept="image/*" style="display:none" onchange="agPhotoFor(this,\''+a.id+'\')"/></label></div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">'+sbtn+'</div></div>';
   });
   return '<div class="card"><div class="card-title">&#43; Create Agent Account</div><div class="form-grid">'+
     '<div class="fg"><label>Full Name *</label><input id="agn-name" placeholder="Agent full name"/></div>'+
     '<div class="fg"><label>Username *</label><input id="agn-user" placeholder="e.g. tunde.a"/></div>'+
     '<div class="fg"><label>Profile Photo</label><div style="display:flex;align-items:center;gap:12px"><div id="agn-photo-prev" style="width:64px;height:64px;border-radius:50%;overflow:hidden;background:#1e3a5f;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:800;border:3px solid #c8973a;flex-shrink:0">'+(agnPhoto?'<img src="'+agnPhoto+'" style="width:100%;height:100%;object-fit:cover" alt=""/>':'&#128100;')+'</div><label class="btn btn-out btn-sm" style="cursor:pointer">&#128247; Upload<input type="file" accept="image/*" style="display:none" onchange="agnPhotoPick(this)"/></label></div></div>'+
     '<div class="fg"><label>Phone</label><input id="agn-phone" placeholder="08XXXXXXXXX"/></div>'+
-    '<div class="fg"><label>Initial Password * (min 6)</label><input id="agn-pass" type="text" placeholder="Agent changes it at first login"/></div></div>'+
+    '<div class="fg"><label>Initial Password * (min 6)</label><input id="agn-pass" type="text" placeholder="Agent changes it at first login"/></div>'+agProfFields('agn-')+'</div>'+
     '<button class="btn btn-navy" data-act="agcreate" onclick="agAct(this)">&#128190; Create Agent</button></div>'+
     '<div class="card"><div class="card-title"><span>&#129309; Agents ('+allAgents.length+')</span><button class="btn btn-out btn-sm" data-act="agsync" onclick="agAct(this)">&#8635; Sync Commissions</button></div>'+
-    agTable(['Name','Username','Phone','Status','Customers','Net Earned','Available','Reserved','Withdrawn','Actions'],rows,'No agents yet. Create the first one above.')+'</div>';
+    (rows.length?'<div class="sc-wrap">'+rows.join('')+'</div>':'<p style="text-align:center;color:var(--muted);padding:16px">No agents yet. Create the first one above.</p>')+'</div>';
 }
 function agCustomersHtml(q){
   q=(q||'').toLowerCase();
@@ -8704,6 +8734,95 @@ async function agAct(el){
     else if(act==='agwd-pay')await agOpenPay(id);
   }catch(e){hideLoader();agErr(e)}
 }
+function agProfFields(p){
+  const f=(id,label,html)=>'<div class="fg"><label>'+label+'</label>'+html+'</div>';
+  const sh=t=>'<div class="sh" style="grid-column:1/-1;margin-top:6px">'+t+'</div>';
+  return sh('Personal Details')+
+    f('','Gender','<select id="'+p+'gender"><option value="">Select</option><option>Male</option><option>Female</option></select>')+
+    f('','Date of Birth','<input type="date" id="'+p+'dob"/>')+
+    f('','Marital Status','<select id="'+p+'marital"><option value="">Select</option><option>Single</option><option>Married</option><option>Divorced</option><option>Widowed</option></select>')+
+    f('','Email','<input type="email" id="'+p+'email" placeholder="Agent email address"/>')+
+    f('','NIN / ID Number','<input id="'+p+'nin" placeholder="National ID number"/>')+
+    f('','Home Address','<input id="'+p+'address" placeholder="Agent home address"/>')+
+    sh('Engagement')+
+    f('','Date Engaged','<input type="date" id="'+p+'engaged" value="'+(p==='agn-'?td():'')+'"/>')+
+    sh('Guarantor Details')+
+    f('','Guarantor Full Name','<input id="'+p+'gr-name" placeholder="Guarantor full name"/>')+
+    f('','Relationship to Agent','<input id="'+p+'gr-rel" placeholder="e.g. Uncle, Pastor, Employer"/>')+
+    f('','Guarantor Phone Number','<input id="'+p+'gr-phone" placeholder="Guarantor phone number"/>')+
+    f('','Guarantor Home Address','<input id="'+p+'gr-addr" placeholder="Guarantor home address"/>')+
+    f('','Guarantor Occupation','<input id="'+p+'gr-occ" placeholder="Occupation / workplace"/>');
+}
+function agReadProfile(p){
+  const g=id=>agClean(v(p+id),160);
+  return {gender:g('gender'),dob:v(p+'dob'),marital:g('marital'),email:g('email'),nin:g('nin'),homeAddress:g('address'),dateEngaged:v(p+'engaged'),
+    guarantor:{name:g('gr-name'),relationship:g('gr-rel'),phone:g('gr-phone'),address:g('gr-addr'),occupation:g('gr-occ')}};
+}
+function agWriteProfile(p,a){
+  const set=(id,val)=>{const e=document.getElementById(p+id);if(e)e.value=val||''},g=a.guarantor||{};
+  set('gender',a.gender);set('dob',a.dob);set('marital',a.marital);set('email',a.email);set('nin',a.nin);set('address',a.homeAddress);set('engaged',a.dateEngaged);
+  set('gr-name',g.name);set('gr-rel',g.relationship);set('gr-phone',g.phone);set('gr-addr',g.address);set('gr-occ',g.occupation);
+}
+function viewAgentProfile(id){
+  const a=allAgents.find(x=>x.id===id);if(!a)return;
+  if(currentSession.role!=='admin'){toast('Admin access required','e');return}
+  const g=a.guarantor||{},b=agBalances[a.id]||agBal({});
+  const cnt=allCustomers.filter(c=>c.agentId===a.id).length;
+  const it=(l,val,full)=>'<div class="iitem"'+(full?' style="grid-column:1/-1"':'')+'><label>'+l+'</label><p>'+swEsc(val||'--')+'</p></div>';
+  document.getElementById('sp-title').textContent='Agent Profile';
+  document.getElementById('staff-profile-body').innerHTML=
+    '<div style="text-align:center;margin-bottom:12px"><div style="width:96px;height:96px;border-radius:50%;margin:0 auto 8px;overflow:hidden;background:#1e3a5f;color:#fff;display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:800;border:3px solid #c8973a">'+profAvatarInner(a)+'</div>'+
+    '<div style="font-weight:800;font-size:1.1rem">'+swEsc(a.name||'')+'</div>'+
+    '<div style="margin-top:5px;display:flex;gap:6px;justify-content:center"><span class="badge" style="background:#ede9fe;color:#6d28d9">agent</span>'+agBadge(a.status)+'</div></div>'+
+    '<div class="sh">Account</div><div class="info-grid">'+
+      it('Username','@'+(a.username||''))+it('Registered On',scDate(a.createdAt))+it('Registered By',a.createdBy||'--')+it('Customers Registered',String(cnt))+
+    '</div>'+
+    '<div class="sh">Earnings</div><div class="info-grid">'+
+      it('Net Earned','\u20a6'+fmt(b.net))+it('Available','\u20a6'+fmt(b.available))+it('Reserved','\u20a6'+fmt(b.reserved))+it('Withdrawn','\u20a6'+fmt(b.withdrawn))+
+    '</div>'+
+    '<div class="sh">Personal Details</div><div class="info-grid">'+
+      it('Phone',a.phone)+it('Email',a.email)+it('Gender',a.gender)+it('Marital Status',a.marital)+
+      it('Date of Birth',a.dob?scDate(a.dob)+scAge(a.dob):'')+it('NIN / ID Number',a.nin)+
+      it('Home Address',a.homeAddress,true)+
+    '</div>'+
+    '<div class="sh">Engagement</div><div class="info-grid">'+it('Date Engaged',a.dateEngaged?scDate(a.dateEngaged):'')+it('Last Updated',scDate(a.updatedAt))+'</div>'+
+    '<div class="sh">Guarantor Details</div><div class="info-grid">'+
+      it('Guarantor Name',g.name)+it('Relationship',g.relationship)+it('Guarantor Phone',g.phone)+it('Occupation',g.occupation)+it('Home Address',g.address,true)+
+    '</div>'+
+    '<div class="btn-row no-print" style="margin-top:14px"><button class="btn btn-amber" onclick="closeModal(\'staff-profile-modal\');openAgentEdit(\''+a.id+'\')">&#9998; Edit Details</button></div>';
+  showModal('staff-profile-modal');
+}
+let agEditId=null;
+function openAgentEdit(id){
+  if(!agAdminOnly())return;
+  const a=allAgents.find(x=>x.id===id);if(!a)return;
+  agEditId=id;
+  document.getElementById('age-body').innerHTML=
+    '<div class="form-grid" style="grid-template-columns:1fr">'+
+    '<div class="fg"><label>Full Name *</label><input id="age-name"/></div>'+
+    '<div class="fg"><label>Phone</label><input id="age-phone"/></div>'+
+    agProfFields('age-')+'</div>'+
+    '<div class="btn-row"><button class="btn btn-navy" onclick="agSaveDetails()">&#128190; Save Details</button><button class="btn btn-out" onclick="closeModal(\'agent-edit-modal\')">Cancel</button></div>';
+  document.getElementById('age-name').value=a.name||'';
+  document.getElementById('age-phone').value=a.phone||'';
+  agWriteProfile('age-',a);
+  showModal('agent-edit-modal');
+}
+async function agSaveDetails(){
+  if(!agAdminOnly())return;
+  const a=allAgents.find(x=>x.id===agEditId);if(!a)return;
+  const name=agClean(v('age-name'),80),phone=agClean(v('age-phone'),30);
+  if(!name){toast('Agent name is required','e');return}
+  const data=Object.assign({name,phone,updatedAt:agNow()},agReadProfile('age-'));
+  try{
+    showLoader('Saving...');
+    await db.collection('agents').doc(a.id).set(data,{merge:true});
+    Object.assign(a,data);
+    hideLoader();closeModal('agent-edit-modal');
+    logAudit('Agent Details Updated',name+' ('+a.username+') details updated.');
+    toast('Agent details saved','s');agRenderTab();
+  }catch(e){hideLoader();agErr(e)}
+}
 let umPhoto, agnPhoto='';
 function umPhotoPaint(){
   const el=document.getElementById('um-photo-prev');if(!el)return;
@@ -8738,7 +8857,7 @@ async function agCreateAgent(){
   await db.runTransaction(async tx=>{
     if((await tx.get(uref)).exists)throw new Error('That username is already taken.');
     tx.set(uref,{agentId:aref.id});
-    tx.set(aref,{name,username,phone,photo:agnPhoto||'',status:'active',createdAt:at,createdBy:currentSession.username||'admin'});
+    tx.set(aref,Object.assign({name,username,phone,photo:agnPhoto||'',status:'active',createdAt:at,createdBy:currentSession.name||currentSession.username||'admin'},agReadProfile('agn-')));
     tx.set(db.collection('agent_auth').doc(aref.id),{hash,salt,failed:0,lockedUntil:0,mustChange:true});
     tx.set(db.collection('agent_balances').doc(aref.id),{earned:0,reversed:0,reserved:0,withdrawn:0,updatedAt:at});
   });
@@ -9312,7 +9431,8 @@ function scAge(dob){
 function viewStaffProfile(id){
   const u=allUsers.find(x=>x.id===id);
   if(!u||!(currentSession.role==='admin'||swCanView(u))){toast('Access denied','e');return}
-  const nk=u.nok||{};
+  document.getElementById('sp-title').textContent='Staff Profile';
+  const nk=u.guarantor||u.nok||{};
   const it=(l,val,full)=>'<div class="iitem"'+(full?' style="grid-column:1/-1"':'')+'><label>'+l+'</label><p>'+swEsc(val||'--')+'</p></div>';
   const roleCls=u.role==='admin'?'admin':u.role==='manager'?'manager':'staff';
   document.getElementById('staff-profile-body').innerHTML=
@@ -9331,8 +9451,8 @@ function viewStaffProfile(id){
     '<div class="sh">Employment</div><div class="info-grid">'+
       it('Date Employed',u.dateEmployed?scDate(u.dateEmployed):'')+it('Last Updated',scDate(u.updatedAt))+
     '</div>'+
-    '<div class="sh">Next of Kin</div><div class="info-grid">'+
-      it('Name',nk.name)+it('Relationship',nk.relationship)+it('Phone',nk.phone)+it('Address',nk.address)+
+    '<div class="sh">Guarantor Details</div><div class="info-grid">'+
+      it('Guarantor Name',nk.name)+it('Relationship',nk.relationship)+it('Guarantor Phone',nk.phone)+it('Occupation',nk.occupation)+it('Home Address',nk.address,true)+
     '</div>'+
     '<div class="btn-row no-print" style="margin-top:14px"><button class="btn btn-out" onclick="closeModal(\'staff-profile-modal\');openStaffWork(\''+u.id+'\')">&#128202; Work Report</button><button class="btn btn-amber" onclick="closeModal(\'staff-profile-modal\');editUser(\''+u.id+'\')">&#9998; Edit</button></div>';
   showModal('staff-profile-modal');
@@ -9438,6 +9558,32 @@ function twPrint(){
 }
 (function(){const o=loadAll;window.loadAll=async function(){await o.apply(this,arguments);try{await profInit()}catch(e){}}})();
 
+// ===== MEANS OF IDENTIFICATION: optional at registration, required when a service is taken =====
+(function idInstallGuards(){
+  const req={submitForm:'f-',submitEasyBuy:'eb-',submitInvestment:'inv-',submitFD:'fd-'};
+  function backfill(p){
+    const cid=(document.getElementById(p+'cust-id')||{}).value;if(!cid)return;
+    const c=allCustomers.find(x=>x.id===cid);if(!c||c.idnum)return;
+    const upd={idtype:v(p+'idtype'),idnum:v(p+'idnum')};
+    const pic=document.getElementById(p+'idpic-data');if(pic&&pic.value&&!c.idpic)upd.idpic=pic.value;
+    db.collection('customers').doc(cid).set(upd,{merge:true}).then(()=>Object.assign(c,upd)).catch(()=>{});
+  }
+  Object.keys(req).forEach(name=>{
+    const orig=window[name];if(typeof orig!=='function')return;
+    window[name]=function(e){
+      const p=req[name];
+      if(!v(p+'idtype')||!v(p+'idnum')){
+        if(e&&e.preventDefault)e.preventDefault();
+        toast('Means of identification (ID type and number, e.g. NIN) is required for this service. Please enter it now.','e');
+        const el=document.getElementById(p+(v(p+'idtype')?'idnum':'idtype'));
+        if(el){el.scrollIntoView({block:'center',behavior:'smooth'});try{el.focus()}catch(x){}}
+        return;
+      }
+      backfill(p);   // saves the ID on the customer record so it is only asked once
+      return orig.apply(this,arguments);
+    };
+  });
+})();
 // =====================================================
 // ===== STAFF AUDIT LOG =====
 // Every contributor registration, profile update, contribution entry,
