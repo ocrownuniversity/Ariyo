@@ -9400,7 +9400,7 @@ function openMyProfile(){
     '<label class="btn btn-out" style="display:flex;justify-content:center;cursor:pointer;margin-bottom:8px">&#128247; Take / Choose Photo<input type="file" accept="image/*" style="display:none" onchange="profPick(this)"/></label>'+
     '<button class="btn btn-navy" style="width:100%;justify-content:center;padding:11px;margin-bottom:8px" onclick="profSaveMine()">&#128190; Save Photo</button>'+
     (ph?'<button class="btn btn-out" style="width:100%;justify-content:center;margin-bottom:8px" onclick="profRemoveMine()">Remove Photo</button>':'')+
-    (!isAdm&&me?'<button class="btn btn-out" style="width:100%;justify-content:center" onclick="closeModal(\'prof-modal\');openStaffWork(\''+me.id+'\')">&#128202; My Work Report</button>':'');
+    (currentSession.role==='manager'&&me?'<button class="btn btn-out" style="width:100%;justify-content:center" onclick="closeModal(\'prof-modal\');openStaffWork(\''+me.id+'\')">&#128202; My Work Report</button>':'');
   showModal('prof-modal');
 }
 function profPick(inp){
@@ -9435,15 +9435,75 @@ function swPickFor(inp,userId){
 
 // ----- periods -----
 function swLocal(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function swRange(p,from,to){
+// ----- service counts per staff (clients / bonus report) -----
+const SW_SERV=['Loans','EasyBuy','Investments','Fixed Deposits','Contributions','Salary Contributions','Education Support'];
+const SW_ALL=SW_SERV.concat(['New Customers']);
+function swDay(iso){
+  if(!iso)return '';
+  const t=String(iso);if(t.length<=10)return t;
+  const d=new Date(t);return isNaN(d)?t.slice(0,10):swLocal(d);
+}
+function swColls(){return [['Loans',allLoans],['EasyBuy',allEasyBuys],['Investments',allInvestments],['Fixed Deposits',allFDs],['Contributions',allContributions],['Salary Contributions',allSalaryContributions],['Education Support',allCES]]}
+function swItems(u){
+  const mine=x=>x&&(x===u.username||x===u.name);
+  const out=[];
+  swColls().forEach(([label,arr])=>(arr||[]).forEach(r=>{
+    if(!mine(r.createdBy))return;
+    const d=swDay(r.createdAt||r.date||r.appdate||r.agrdate||r.startdate||'');
+    if(d)out.push({d,label,cid:r.customerId||r.phone||r.name||r.id});
+  }));
+  (allCustomers||[]).forEach(c=>{
+    if(!mine(c.createdBy))return;
+    const d=swDay(c.createdAt||'');
+    if(d)out.push({d,label:'New Customers',cid:c.id});
+  });
+  return out;
+}
+function swMonday(dstr){
+  const d=new Date(dstr+'T00:00:00');d.setDate(d.getDate()-((d.getDay()+6)%7));return swLocal(d);
+}
+function swSentence(u,r,d){
+  const one={'Loans':'loan','EasyBuy':'EasyBuy','Investments':'investment','Fixed Deposits':'fixed deposit','Contributions':'contribution','Salary Contributions':'salary contribution','Education Support':'education support'};
+  const parts=SW_SERV.filter(l=>d.counts[l]>0).map(l=>d.counts[l]+' '+(d.counts[l]===1?one[l]:l.toLowerCase()));
+  return (u.name||u.username)+' record for '+r.title+': '+(parts.length?parts.join(', '):'no new services');
+}
+function swGroupTable(items,mode){
+  const key=d=>mode==='month'?d.slice(0,7):mode==='week'?swMonday(d):d;
+  const rows={};
+  items.forEach(it=>{const k=key(it.d);(rows[k]=rows[k]||{});rows[k][it.label]=(rows[k][it.label]||0)+1});
+  const keys=Object.keys(rows).sort();
+  if(!keys.length)return '<p style="font-size:.8rem;color:var(--muted)">No new services in this period.</p>';
+  const lab=k=>mode==='month'?new Date(k+'-01T00:00:00').toLocaleDateString('en-GB',{month:'long',year:'numeric'}):mode==='week'?'Week of '+scDate(k):scDate(k);
+  const short={'Loans':'Loan','EasyBuy':'EasyBuy','Investments':'Invest.','Fixed Deposits':'FD','Contributions':'Contrib.','Salary Contributions':'Salary','Education Support':'Edu.','New Customers':'Cust. Reg.'};
+  const tot={};
+  const body=keys.map(k=>{
+    const r=rows[k];let t=0;
+    SW_SERV.forEach(l=>t+=r[l]||0);
+    SW_ALL.forEach(l=>tot[l]=(tot[l]||0)+(r[l]||0));
+    return '<tr><td style="white-space:nowrap">'+lab(k)+'</td>'+SW_ALL.map(l=>'<td>'+(r[l]||'-')+'</td>').join('')+'<td><strong>'+t+'</strong></td></tr>';
+  }).join('');
+  const gt=SW_SERV.reduce((a,l)=>a+(tot[l]||0),0);
+  return '<div class="tbl-wrap"><table><thead><tr><th>'+(mode==='month'?'Month':mode==='week'?'Week':'Day')+'</th>'+SW_ALL.map(l=>'<th>'+short[l]+'</th>').join('')+'<th>Total</th></tr></thead><tbody>'+body+
+    '<tr style="background:var(--bg)"><td><strong>TOTAL</strong></td>'+SW_ALL.map(l=>'<td><strong>'+(tot[l]||0)+'</strong></td>').join('')+'<td><strong>'+gt+'</strong></td></tr></tbody></table></div>';
+}
+function swRange(p,from,to,month){
   const now=new Date(td()+'T00:00:00');
   const mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7));
   const add=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
-  if(p==='week')return {from:swLocal(mon),to:swLocal(add(mon,6)),label:'This week'};
-  if(p==='lastweek')return {from:swLocal(add(mon,-7)),to:swLocal(add(mon,-1)),label:'Last week'};
-  if(p==='month')return {from:swLocal(new Date(now.getFullYear(),now.getMonth(),1)),to:swLocal(new Date(now.getFullYear(),now.getMonth()+1,0)),label:'This month'};
-  if(p==='lastmonth')return {from:swLocal(new Date(now.getFullYear(),now.getMonth()-1,1)),to:swLocal(new Date(now.getFullYear(),now.getMonth(),0)),label:'Last month'};
-  return {from:from||td(),to:to||td(),label:'Custom'};
+  const mname=d=>d.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  const monthRange=(y,m,label)=>{const a=new Date(y,m,1),b=new Date(y,m+1,0);return {from:swLocal(a),to:swLocal(b),label,title:mname(a)}};
+  if(p==='today')return {from:td(),to:td(),label:'Today',title:scDate(td())};
+  if(p==='yesterday'){const y=swLocal(add(now,-1));return {from:y,to:y,label:'Yesterday',title:scDate(y)}}
+  if(p==='week'){const a=swLocal(mon),b=swLocal(add(mon,6));return {from:a,to:b,label:'This week',title:'this week ('+scDate(a)+' - '+scDate(b)+')'}}
+  if(p==='lastweek'){const a=swLocal(add(mon,-7)),b=swLocal(add(mon,-1));return {from:a,to:b,label:'Last week',title:'last week ('+scDate(a)+' - '+scDate(b)+')'}}
+  if(p==='month')return monthRange(now.getFullYear(),now.getMonth(),'This month');
+  if(p==='lastmonth')return monthRange(now.getFullYear(),now.getMonth()-1,'Last month');
+  if(p==='pickmonth'){
+    const m=(month||td().slice(0,7)).split('-');
+    return monthRange(parseInt(m[0]),parseInt(m[1])-1,'Month');
+  }
+  const a=from||td(),b=to||td();
+  return {from:a,to:b,label:'Custom',title:scDate(a)+' to '+scDate(b)};
 }
 function swCompute(u,from,to){
   const inR=d=>d&&d>=from&&d<=to;
@@ -9451,23 +9511,26 @@ function swCompute(u,from,to){
   const logs=allAuditLogs.filter(l=>l.username===u.username&&inR(l.date)).sort((a,b)=>new Date(b.ts)-new Date(a.ts));
   const actions={},days={};
   logs.forEach(l=>{actions[l.action]=(actions[l.action]||0)+1;days[l.date]=(days[l.date]||0)+1});
-  const colls=[['Loans',allLoans],['EasyBuy',allEasyBuys],['Investments',allInvestments],['Fixed Deposits',allFDs],['Contributions',allContributions],['Salary Contributions',allSalaryContributions],['Education Support',allCES],['Customers',allCustomers]];
-  const created=colls.map(([label,arr])=>({label,n:(arr||[]).filter(r=>mine(r.createdBy)&&inR((r.createdAt||r.date||'').slice(0,10))).length}));
+  const items=swItems(u).filter(it=>inR(it.d));
+  const counts={};SW_ALL.forEach(l=>counts[l]=0);
+  const served=new Set();
+  items.forEach(it=>{counts[it.label]++;if(it.label!=='New Customers')served.add(it.cid)});
+  const servicesTotal=SW_SERV.reduce((a,l)=>a+counts[l],0);
   let pCount=0,pAmt=0;
   [allLoans,allEasyBuys,allInvestments,allContributions,allSalaryContributions,allCES].forEach(arr=>(arr||[]).forEach(r=>(r.payments||[]).forEach(p=>{
-    if(mine(p.recordedBy)&&inR((p.recordedAt||p.date||'').slice(0,10))){pCount++;pAmt+=parseFloat(p.amount)||0}
+    if(mine(p.recordedBy)&&inR(swDay(p.recordedAt||p.date||''))){pCount++;pAmt+=parseFloat(p.amount)||0}
   })));
-  const createdTotal=created.reduce((a,c)=>a+c.n,0);
-  return {logs,actions,days,created,createdTotal,pCount,pAmt,activeDays:Object.keys(days).length};
+  return {logs,actions,days,items,counts,servicesTotal,newCust:counts['New Customers'],served:served.size,createdTotal:servicesTotal,pCount,pAmt,activeDays:Object.keys(days).length};
 }
 function swCanView(u){
+  // Work reports are for the admin and managers only. A manager sees staff in their own branch.
   if(!u)return false;
   if(currentSession.role==='admin')return true;
   if(currentSession.role==='manager')return u.id===currentSession.userId||(u.branchId===currentSession.branchId&&u.role==='staff');
-  return u.id===currentSession.userId;
+  return false;
 }
 function swChips(cur,fn){
-  return [['week','This Week'],['lastweek','Last Week'],['month','This Month'],['lastmonth','Last Month'],['custom','Custom']].map(([k,l])=>'<button class="sw-chip'+(cur===k?' on':'')+'" onclick="'+fn+'(\''+k+'\')">'+l+'</button>').join('');
+  return [['today','Today'],['yesterday','Yesterday'],['week','This Week'],['lastweek','Last Week'],['month','This Month'],['lastmonth','Last Month'],['pickmonth','Pick Month'],['custom','Custom']].map(([k,l])=>'<button class="sw-chip'+(cur===k?' on':'')+'" onclick="'+fn+'(\''+k+'\')">'+l+'</button>').join('');
 }
 function scDate(iso){
   if(!iso)return '--';
@@ -9513,19 +9576,20 @@ function viewStaffProfile(id){
 }
 function openStaffWork(id,keep){
   const u=allUsers.find(x=>x.id===id);
-  if(!swCanView(u)){toast('You can only view work reports for your own team','e');return}
-  if(!keep)swState={id,period:'week',from:'',to:''};
+  if(!swCanView(u)){toast('Work reports are for the admin and managers only','e');return}
+  if(!keep)swState={id,period:'month',from:'',to:'',month:td().slice(0,7),group:'day'};
   renderSW();showModal('sw-modal');
 }
 function swSet(p){swState.period=p;renderSW()}
 function swDates(){swState.from=v('sw-from');swState.to=v('sw-to');renderSW()}
 function renderSW(){
   const u=allUsers.find(x=>x.id===swState.id);if(!u)return;
-  const r=swRange(swState.period,swState.from,swState.to), d=swCompute(u,r.from,r.to);
+  const r=swRange(swState.period,swState.from,swState.to,swState.month), d=swCompute(u,r.from,r.to);
   const canPhoto=currentSession.role==='admin'||currentSession.role==='manager';
   document.getElementById('sw-title').textContent='Work Report \u2014 '+(u.name||u.username);
   const top=Object.entries(d.actions).sort((a,b)=>b[1]-a[1]);
-  const dayRows=Object.entries(d.days).sort((a,b)=>a[0]<b[0]?1:-1);
+  const g=swState.group||'day';
+  const tile=(n,l)=>'<div class="sw-tile"><b>'+n+'</b><span>'+l+'</span></div>';
   document.getElementById('sw-body').innerHTML=
     '<div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">'+
     '<div style="width:64px;height:64px;border-radius:50%;overflow:hidden;background:#1e3a5f;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:800;border:3px solid #c8973a;flex-shrink:0">'+profAvatarInner(u)+'</div>'+
@@ -9533,24 +9597,24 @@ function renderSW(){
     '<div style="font-size:.76rem;color:var(--muted)">@'+swEsc(u.username)+' &bull; '+swEsc(getBranchName(u.branchId))+(u.phone?' &bull; '+swEsc(u.phone):'')+'</div>'+
     (canPhoto?'<label style="font-size:.72rem;color:#7c3aed;font-weight:700;cursor:pointer">&#128247; Change photo<input type="file" accept="image/*" style="display:none" onchange="swPickFor(this,\''+u.id+'\')"/></label>':'')+'</div></div>'+
     '<div class="no-print" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+swChips(swState.period,'swSet')+'</div>'+
+    (swState.period==='pickmonth'?'<div class="no-print" style="margin-bottom:8px"><input type="month" id="sw-month" value="'+(swState.month||td().slice(0,7))+'" onchange="swMonth()"/></div>':'')+
     (swState.period==='custom'?'<div class="no-print" style="display:flex;gap:8px;margin-bottom:8px"><input type="date" id="sw-from" value="'+r.from+'" onchange="swDates()"/><input type="date" id="sw-to" value="'+r.to+'" onchange="swDates()"/></div>':'')+
-    '<div style="font-size:.76rem;color:var(--muted);margin-bottom:10px">'+r.label+': <strong>'+r.from+'</strong> to <strong>'+r.to+'</strong></div>'+
+    '<div style="background:#f5f3ff;border:1.5px solid #ddd6fe;border-radius:10px;padding:12px;margin-bottom:12px"><div style="font-size:.66rem;text-transform:uppercase;color:#7c3aed;font-weight:800;letter-spacing:.05em">'+r.from+' to '+r.to+'</div><div style="font-weight:800;font-size:.98rem;color:#0f2342;margin-top:3px">'+swEsc(swSentence(u,r,d))+'</div></div>'+
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:12px">'+
-    '<div class="sw-tile"><b>'+d.logs.length+'</b><span>Actions logged</span></div>'+
-    '<div class="sw-tile"><b>'+d.activeDays+'</b><span>Days active</span></div>'+
-    '<div class="sw-tile"><b>'+d.createdTotal+'</b><span>Records created</span></div>'+
-    '<div class="sw-tile"><b>'+d.pCount+'</b><span>Payments recorded</span></div>'+
-    '<div class="sw-tile"><b>&#8358;'+fmt(d.pAmt)+'</b><span>Amount collected</span></div></div>'+
-    '<div class="sh" style="margin-top:0">Records created</div>'+
-    '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">'+d.created.filter(c=>c.n).map(c=>'<span class="badge b-staff">'+c.label+': '+c.n+'</span>').join('')+(d.createdTotal?'':'<span style="font-size:.8rem;color:var(--muted)">None in this period.</span>')+'</div>'+
-    '<div class="sh">Work done (by activity)</div>'+
+      tile(d.servicesTotal,'New services')+tile(d.newCust,'Customers registered')+tile(d.served,'Clients with new services')+tile(d.pCount,'Payments recorded')+tile('&#8358;'+fmt(d.pAmt),'Amount collected')+tile(d.activeDays,'Days active')+'</div>'+
+    '<div class="sh" style="margin-top:0">Services registered</div>'+
+    '<div class="tbl-wrap"><table><thead><tr><th>Service</th><th>Count</th></tr></thead><tbody>'+SW_ALL.map(l=>'<tr><td>'+(l==='New Customers'?'Customers registered (not counted as a service)':l)+'</td><td><strong>'+d.counts[l]+'</strong></td></tr>').join('')+'</tbody></table></div>'+
+    '<div class="sh">Breakdown</div>'+
+    '<div class="no-print" style="display:flex;gap:6px;margin-bottom:8px">'+[['day','By Day'],['week','By Week'],['month','By Month']].map(([k,l])=>'<button class="sw-chip'+(g===k?' on':'')+'" onclick="swGroupSet(\''+k+'\')">'+l+'</button>').join('')+'</div>'+
+    swGroupTable(d.items,g)+
+    '<div class="sh">Other work logged (by activity)</div>'+
     (top.length?'<div class="tbl-wrap"><table><thead><tr><th>Activity</th><th>Times</th></tr></thead><tbody>'+top.map(([a,n])=>'<tr><td>'+swEsc(a)+'</td><td><strong>'+n+'</strong></td></tr>').join('')+'</tbody></table></div>':'<p style="font-size:.8rem;color:var(--muted)">No logged activity in this period.</p>')+
-    '<div class="sh">Day by day</div>'+
-    (dayRows.length?'<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Actions</th></tr></thead><tbody>'+dayRows.map(([a,n])=>'<tr><td>'+a+'</td><td>'+n+'</td></tr>').join('')+'</tbody></table></div>':'<p style="font-size:.8rem;color:var(--muted)">No activity.</p>')+
     '<div class="sh">Activity details (latest 50)</div>'+
     (d.logs.length?'<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Time</th><th>Action</th><th>Details</th></tr></thead><tbody>'+d.logs.slice(0,50).map(l=>'<tr><td>'+l.date+'</td><td>'+swEsc(l.time)+'</td><td>'+swEsc(l.action)+'</td><td style="font-size:.76rem;color:var(--muted)">'+swEsc(l.details||'--')+'</td></tr>').join('')+'</tbody></table></div>':'<p style="font-size:.8rem;color:var(--muted)">Nothing to show.</p>')+
     '<button class="btn btn-out no-print" style="margin-top:12px;width:100%;justify-content:center" onclick="swPrint()">&#128424; Print Report</button>';
 }
+function swMonth(){swState.month=v('sw-month')||swState.month;renderSW()}
+function swGroupSet(g){swState.group=g;renderSW()}
 function swPrint(){
   const win=window.open('','_blank','width=800,height=900');if(!win){toast('Allow pop-ups to print','e');return}
   win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Staff Work Report</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#1e293b;font-size:13px}table{width:100%;border-collapse:collapse;margin:6px 0}td,th{padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:left}.sh{font-weight:800;color:#0f2342;margin-top:14px;text-transform:uppercase;font-size:.75rem}.sw-tile{display:inline-block;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;margin:3px;text-align:center}.sw-tile b{display:block}.no-print,button,input,label{display:none}img{border-radius:50%;width:56px;height:56px}</style></head><body><h2>Zmonie &mdash; Staff Work Report</h2>'+document.getElementById('sw-body').innerHTML+'<scr'+'ipt>setTimeout(function(){window.print()},400)</scr'+'ipt></body></html>');
@@ -9560,41 +9624,48 @@ function swPrint(){
 // ----- team overview -----
 function openTeamWork(){
   if(currentSession.role!=='admin'&&currentSession.role!=='manager'){toast('Admin or manager only','e');return}
-  twState={period:'week',from:'',to:''};renderTW();showModal('tw-modal');
+  twState={period:'month',from:'',to:'',month:td().slice(0,7)};renderTW();showModal('tw-modal');
 }
 function twSet(p){twState.period=p;renderTW()}
 function twDates(){twState.from=v('tw-from');twState.to=v('tw-to');renderTW()}
 function twData(){
-  const r=swRange(twState.period,twState.from,twState.to);
+  const r=swRange(twState.period,twState.from,twState.to,twState.month);
   const list=allUsers.filter(u=>u.role!=='admin'&&swCanView(u)&&u.status!=='inactive');
-  const rows=list.map(u=>({u,d:swCompute(u,r.from,r.to)})).sort((a,b)=>b.d.logs.length-a.d.logs.length);
+  const rows=list.map(u=>({u,d:swCompute(u,r.from,r.to)})).sort((a,b)=>(b.d.servicesTotal-a.d.servicesTotal)||(b.d.newCust-a.d.newCust));
   return {r,rows};
 }
 function renderTW(){
   const {r,rows}=twData();
+  const short={'Loans':'Loan','EasyBuy':'EasyBuy','Investments':'Invest.','Fixed Deposits':'FD','Contributions':'Contrib.','Salary Contributions':'Salary','Education Support':'Edu.'};
+  const tot={};SW_ALL.forEach(l=>tot[l]=0);let tSrv=0,tServed=0;
+  rows.forEach(({d})=>{SW_ALL.forEach(l=>tot[l]+=d.counts[l]);tSrv+=d.servicesTotal;tServed+=d.served});
   document.getElementById('tw-body').innerHTML=
     '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+swChips(twState.period,'twSet')+'</div>'+
+    (twState.period==='pickmonth'?'<div style="margin-bottom:8px"><input type="month" id="tw-month" value="'+(twState.month||td().slice(0,7))+'" onchange="twMonth()"/></div>':'')+
     (twState.period==='custom'?'<div style="display:flex;gap:8px;margin-bottom:8px"><input type="date" id="tw-from" value="'+r.from+'" onchange="twDates()"/><input type="date" id="tw-to" value="'+r.to+'" onchange="twDates()"/></div>':'')+
-    '<div style="font-size:.76rem;color:var(--muted);margin-bottom:10px">'+r.label+': <strong>'+r.from+'</strong> to <strong>'+r.to+'</strong> &mdash; tap a staff member for full details</div>'+
+    '<div style="font-size:.78rem;color:var(--muted);margin-bottom:10px"><strong>'+swEsc(r.title)+'</strong> &bull; '+r.from+' to '+r.to+' &mdash; every <strong>new service</strong> each staff registered. A returning customer&#39;s second loan counts as a new loan. Repayments and continued contribution payments are not counted. Tap a staff member for the day, week and month breakdown.</div>'+
     '<div class="no-print" style="display:flex;gap:8px;margin-bottom:10px"><button class="btn btn-gold btn-sm" onclick="twDownload()">&#11015; Download Report (Excel)</button><button class="btn btn-out btn-sm" onclick="twPrint()">&#128424; Print</button></div>'+
-    (rows.length?'<div class="tbl-wrap"><table><thead><tr><th>Staff</th><th>Actions</th><th>Records</th><th>Payments</th><th>Collected</th></tr></thead><tbody>'+
-    rows.map(({u,d})=>'<tr style="cursor:pointer" onclick="closeModal(\'tw-modal\');openStaffWork(\''+u.id+'\')"><td><div style="display:flex;align-items:center;gap:8px"><div class="user-avatar" style="width:30px;height:30px;font-size:.75rem">'+profAvatarInner(u)+'</div><div><strong>'+swEsc(u.name)+'</strong><div style="font-size:.66rem;color:var(--muted)">'+swEsc(getBranchName(u.branchId))+'</div></div></div></td><td>'+d.logs.length+'</td><td>'+d.createdTotal+'</td><td>'+d.pCount+'</td><td>&#8358;'+fmt(d.pAmt)+'</td></tr>').join('')+'</tbody></table></div>':'<p style="text-align:center;color:var(--muted);padding:16px">No staff to show.</p>');
+    (rows.length?'<div class="tbl-wrap"><table><thead><tr><th>Staff</th>'+SW_SERV.map(l=>'<th>'+short[l]+'</th>').join('')+'<th>Total</th><th>Customers Registered</th><th>Clients (New Services)</th></tr></thead><tbody>'+
+    rows.map(({u,d})=>'<tr style="cursor:pointer" onclick="closeModal(\'tw-modal\');openStaffWork(\''+u.id+'\')"><td><div style="display:flex;align-items:center;gap:8px"><div class="user-avatar" style="width:30px;height:30px;font-size:.75rem;flex-shrink:0">'+profAvatarInner(u)+'</div><div><strong>'+swEsc(u.name)+'</strong><div style="font-size:.66rem;color:var(--muted)">'+swEsc(getBranchName(u.branchId))+'</div></div></div></td>'+SW_SERV.map(l=>'<td>'+(d.counts[l]||'-')+'</td>').join('')+'<td><strong>'+d.servicesTotal+'</strong></td><td><strong style="color:#7c3aed">'+d.newCust+'</strong></td><td>'+d.served+'</td></tr>').join('')+
+    '<tr style="background:var(--bg)"><td><strong>TOTAL</strong></td>'+SW_SERV.map(l=>'<td><strong>'+tot[l]+'</strong></td>').join('')+'<td><strong>'+tSrv+'</strong></td><td><strong>'+tot['New Customers']+'</strong></td><td><strong>'+tServed+'</strong></td></tr></tbody></table></div>'
+    :'<p style="text-align:center;color:var(--muted);padding:16px">No staff to show.</p>')+
+    (rows.length?'<div class="sh">Summary</div>'+rows.map(({u,d})=>'<p style="font-size:.82rem;margin:4px 0">&bull; '+swEsc(swSentence(u,r,d))+'</p>').join(''):'');
 }
+function twMonth(){twState.month=v('tw-month')||twState.month;renderTW()}
 function twDownload(){
   if(currentSession.role!=='admin'&&currentSession.role!=='manager'){toast('Admin or manager only','e');return}
   const {r,rows}=twData();
   if(!rows.length){toast('No staff to export','w');return}
-  const cats=rows[0].d.created.map(c=>c.label);
   const q=x=>'"'+String(x==null?'':x).replace(/"/g,'""')+'"';
-  const head=['Staff Name','Username','Role','Branch','Period','From','To','Actions Logged','Days Active','Records Created'].concat(cats,['Payments Recorded','Amount Collected (NGN)']);
+  const head=['Staff Name','Username','Role','Branch','Period','From','To'].concat(SW_SERV,['Total New Services','Customers Registered','Clients With New Services','Payments Recorded','Amount Collected (NGN)','Summary']);
   const lines=[head.map(q).join(',')];
-  const tot=new Array(head.length-10).fill(0);
+  const tot=new Array(SW_SERV.length+5).fill(0);
   rows.forEach(({u,d})=>{
-    const nums=[d.logs.length,d.activeDays,d.createdTotal].concat(d.created.map(c=>c.n),[d.pCount,d.pAmt]);
+    const nums=SW_SERV.map(l=>d.counts[l]).concat([d.servicesTotal,d.newCust,d.served,d.pCount,d.pAmt]);
     nums.forEach((n,i)=>tot[i]+=n);
-    lines.push([u.name,u.username,u.role||'staff',getBranchName(u.branchId),r.label,r.from,r.to].map(q).concat(nums).join(','));
+    lines.push([u.name,u.username,u.role||'staff',getBranchName(u.branchId),r.title,r.from,r.to].map(q).concat(nums,[q(swSentence(u,r,d))]).join(','));
   });
-  lines.push(['TOTAL','','','','',r.from,r.to].map(q).concat(tot).join(','));
+  lines.push(['TOTAL','','','','',r.from,r.to].map(q).concat(tot,['""']).join(','));
   const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='Team_Work_Report_'+r.from+'_to_'+r.to+'.csv';
@@ -9604,10 +9675,10 @@ function twDownload(){
 }
 function twPrint(){
   const {r,rows}=twData();
-  const win=window.open('','_blank','width=800,height=900');if(!win){toast('Allow pop-ups to print','e');return}
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Team Work Report</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#1e293b;font-size:13px}table{width:100%;border-collapse:collapse;margin-top:10px}td,th{padding:7px 8px;border-bottom:1px solid #e2e8f0;text-align:left}th{background:#f1f5f9}</style></head><body><h2>Zmonie &mdash; Team Work Report</h2><p>'+r.label+': <strong>'+r.from+'</strong> to <strong>'+r.to+'</strong></p><table><thead><tr><th>Staff</th><th>Branch</th><th>Actions</th><th>Days Active</th><th>Records</th><th>Payments</th><th>Collected</th></tr></thead><tbody>'+
-    rows.map(({u,d})=>'<tr><td>'+swEsc(u.name)+'</td><td>'+swEsc(getBranchName(u.branchId))+'</td><td>'+d.logs.length+'</td><td>'+d.activeDays+'</td><td>'+d.createdTotal+'</td><td>'+d.pCount+'</td><td>&#8358;'+fmt(d.pAmt)+'</td></tr>').join('')+
-    '</tbody></table><scr'+'ipt>setTimeout(function(){window.print()},400)</scr'+'ipt></body></html>');
+  const win=window.open('','_blank','width=900,height=900');if(!win){toast('Allow pop-ups to print','e');return}
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Team Work Report</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#1e293b;font-size:12px}table{width:100%;border-collapse:collapse;margin-top:10px}td,th{padding:6px 6px;border-bottom:1px solid #e2e8f0;text-align:left}th{background:#f1f5f9}</style></head><body><h2>Zmonie &mdash; Team Work Report</h2><p><strong>'+swEsc(r.title)+'</strong> &bull; '+r.from+' to '+r.to+'</p><table><thead><tr><th>Staff</th><th>Branch</th>'+SW_SERV.map(l=>'<th>'+l+'</th>').join('')+'<th>Total</th><th>Customers Registered</th><th>Clients (New Services)</th></tr></thead><tbody>'+
+    rows.map(({u,d})=>'<tr><td>'+swEsc(u.name)+'</td><td>'+swEsc(getBranchName(u.branchId))+'</td>'+SW_SERV.map(l=>'<td>'+d.counts[l]+'</td>').join('')+'<td><strong>'+d.servicesTotal+'</strong></td><td><strong>'+d.newCust+'</strong></td><td>'+d.served+'</td></tr>').join('')+
+    '</tbody></table>'+rows.map(({u,d})=>'<p>&bull; '+swEsc(swSentence(u,r,d))+'</p>').join('')+'<scr'+'ipt>setTimeout(function(){window.print()},400)</scr'+'ipt></body></html>');
   win.document.close();
 }
 (function(){const o=loadAll;window.loadAll=async function(){await o.apply(this,arguments);try{await profInit()}catch(e){}}})();
