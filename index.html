@@ -519,6 +519,7 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
             <div class="fg"><label>Full Name *</label><input required id="cust-name" placeholder="Customer full name"/></div>
             <div class="fg"><label>Age</label><input type="number" min="1" max="120" id="cust-age" placeholder="e.g. 35"/></div>
             <div class="fg"><label>Phone Number *</label><input required id="cust-phone" placeholder="08XXXXXXXXX"/></div>
+            <div class="fg admin-only-field" style="display:none"><label>Branch</label><select id="cust-branch"><option value="">&mdash; Select Branch &mdash;</option></select></div>
             <div class="fg"><label>Address *</label><input required id="cust-address" placeholder="Residential address"/></div>
             <div class="fg"><label>Office Address</label><input id="cust-office" placeholder="Office / business address"/></div>
             <div class="fg"><label>Occupation / Business</label><input id="cust-occ" placeholder="Job title or business name"/></div>
@@ -2803,7 +2804,7 @@ function showPage(id){
   }
   if(id==='fixeddeposit'){populateFDBranchDropdowns();renderFDStats();renderFD(scopedFD())}
   if(id==='new-fixeddeposit'){populateFDBranchDropdowns();resetFDForm()}
-  if(id==='customers'){renderCustStats();renderCust(allCustomers)}
+  if(id==='customers'){renderCustStats();renderCust(getScopedCustomers())}
   if(id==='new-customer'){populateCustomerDropdowns()}
   if(id==='salarycontribution'){populateSALBranchDropdowns();renderSALStats();renderSAL(scopedSAL());renderSALActivity()}
   if(id==='new-salarycontribution'){populateSALBranchDropdowns();populateCustomerDropdowns();resetSALForm()}
@@ -2888,7 +2889,7 @@ function populateLoginBranchSelect(){
 }
 
 function populateAllBranchDropdowns(){
-  ['f-branch','um-branch','usr-br','rpt-br','fbrch'].forEach(selId=>{
+  ['f-branch','um-branch','usr-br','rpt-br','fbrch','cust-branch'].forEach(selId=>{
     const sel=document.getElementById(selId);if(!sel)return;
     const isFilter=selId==='usr-br'||selId==='rpt-br'||selId==='fbrch';
     sel.innerHTML=isFilter?'<option value="">All Branches</option>':'<option value="">— Select Branch —</option>';
@@ -3185,9 +3186,7 @@ function openRepayModal(id){
       <div class="form-grid">
         <div class="fg"><label>Amount (&#8358;) *</label><input type="number" id="pay-amt" placeholder="0" max="${bal}"/></div>
         <div class="fg"><label>Date *</label><input type="date" id="pay-date" value="${td()}"/></div>
-        <div class="fg"><label>Method</label>
-          <select id="pay-mth"><option value="">Select</option><option>Cash</option><option>Bank Transfer</option><option>POS</option><option>Mobile Money</option></select>
-        </div>
+        ${payModeHTML('pay-mth')}
         <div class="fg"><label>Note</label><input id="pay-note" placeholder="Optional note"/></div>
       </div>
       <button class="btn btn-green" onclick="savePayment()" style="width:100%;justify-content:center;padding:11px;font-size:.88rem;margin-top:12px">&#128176; Save Payment</button>`:''}
@@ -4679,6 +4678,21 @@ const CUST_FIELD_MAP={
     nokName:'sal-nok-name',nokPhone:'sal-nok-phone',nokAddress:'sal-nok-addr',nokPhoto:'sal-nok-photo-data',nokPhotoPrev:'sal-nok-photo-prev'},
   'ces-':{name:'ces-name',phone:'ces-phone',address:'ces-address',occupation:'ces-occ'}
 };
+// Customer visibility: admin sees all, a manager sees their own branch, staff see only the customers they registered.
+function custVisible(c){
+  const r=currentSession.role;
+  if(r==='admin'||r==='agent')return true;
+  const me=currentSession.username;
+  if(r==='staff')return c.createdBy===me;
+  if(r==='manager'){
+    if(c.branchId)return c.branchId===currentSession.branchId;
+    if(c.createdBy===me)return true;
+    const u=allUsers.find(x=>x.username===c.createdBy);
+    return !!(u&&u.branchId===currentSession.branchId);
+  }
+  return false;
+}
+function getScopedCustomers(){return allCustomers.filter(custVisible)}
 function custGenRegNo(){
   let n=allCustomers.length+1, regNo;
   do{ regNo='CUS-'+String(n).padStart(5,'0'); n++; }while(allCustomers.some(c=>c.regNo===regNo));
@@ -4686,7 +4700,7 @@ function custGenRegNo(){
 }
 function populateCustomerDropdowns(){
   const opts='<option value="">\u2014 Select a registered customer or fill details manually below \u2014</option>'+
-    allCustomers.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''))
+    getScopedCustomers().sort((a,b)=>(a.name||'').localeCompare(b.name||''))
       .map(c=>'<option value="'+c.id+'">'+c.regNo+' \u2014 '+c.name+' ('+(c.phone||'')+')</option>').join('');
   document.querySelectorAll('[id$="cust-pick"]').forEach(sel=>{ sel.innerHTML=opts; });
 }
@@ -4717,7 +4731,7 @@ function useRegisteredCustomer(prefix,custId){
 function renderCustStats(){
   const el=document.getElementById('cust-stat-grid');if(!el)return;
   el.innerHTML=
-    '<div class="stat-card" style="border-color:#0f2342"><div class="stat-val">'+allCustomers.length+'</div><div class="stat-lbl">Total Registered Customers</div></div>';
+    '<div class="stat-card" style="border-color:#0f2342"><div class="stat-val">'+getScopedCustomers().length+'</div><div class="stat-lbl">'+(currentSession.role==='staff'?'My Registered Customers':currentSession.role==='manager'?'Branch Customers':'Total Registered Customers')+'</div></div>';
 }
 function renderCust(list){
   const tb=document.getElementById('cust-tbody');if(!tb)return;
@@ -4738,7 +4752,7 @@ function renderCust(list){
 }
 function searchCust(){
   const q=v('cust-srch').toLowerCase();
-  renderCust(allCustomers.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.regNo||'').toLowerCase().includes(q)||(c.address||'').toLowerCase().includes(q)));
+  renderCust(getScopedCustomers().filter(c=>(c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.regNo||'').toLowerCase().includes(q)||(c.address||'').toLowerCase().includes(q)));
 }
 function resetCustomerForm(){
   document.getElementById('cust-form').reset();
@@ -4763,6 +4777,8 @@ function submitCustomer(e){
     nokOccupation:v('cust-nok-occ'), nokIdtype:v('cust-nok-idtype'), nokIdnum:v('cust-nok-idnum'), nokPhoto:v('cust-nok-photo-data')
   };
   try{if(JSON.stringify(data).length>980000){toast('Images are too large in total. Use smaller/clearer photos and try again.','e');return}}catch(x){}
+  if(currentSession.role==='admin')data.branchId=v('cust-branch');
+  else if(currentSession.role!=='agent'&&!editId)data.branchId=currentSession.branchId||'';
   if(currentSession.role==='agent'){agentRegisterCustomer(data);return}
   if(editId){
     db.collection('customers').doc(editId).set(data,{merge:true}).then(()=>{
@@ -4784,6 +4800,7 @@ function editCustomer(id){
   showPage('new-customer');
   document.getElementById('cust-edit-id').value=id;
   document.getElementById('cust-name').value=c.name||'';
+  const cb=document.getElementById('cust-branch');if(cb)cb.value=c.branchId||'';
   document.getElementById('cust-phone').value=c.phone||'';
   document.getElementById('cust-address').value=c.address||'';
   document.getElementById('cust-office').value=c.officeAddress||'';
@@ -4813,7 +4830,7 @@ function delCustomer(id){
   db.collection('customers').doc(id).delete().then(()=>{
     allCustomers=allCustomers.filter(x=>x.id!==id);
     toast('Customer deleted','s');populateCustomerDropdowns();
-    closeModal('cust-profile-modal');renderCustStats();renderCust(allCustomers);
+    closeModal('cust-profile-modal');renderCustStats();renderCust(getScopedCustomers());
   }).catch(err=>toast('Error: '+err.message,'e'));
 }
 function custQuickAction(id,prefix,page){
@@ -5049,7 +5066,7 @@ function openEBPayModal(id){
     '<div class="form-grid">'+
     '<div class="fg"><label>Amount (&#8358;) *</label><input type="number" id="eb-pay-amt" placeholder="0" max="'+bal+'"/></div>'+
     '<div class="fg"><label>Date *</label><input type="date" id="eb-pay-date" value="'+td()+'"/></div>'+
-    '<div class="fg"><label>Method</label><select id="eb-pay-mth"><option value="">Select</option><option>Cash</option><option>Bank Transfer</option><option>POS</option></select></div>'+
+    payModeHTML('eb-pay-mth')+
     '<div class="fg"><label>Note</label><input id="eb-pay-note" placeholder="Optional note"/></div>'+
     '</div>'+
     '<button class="btn btn-green" onclick="saveEBPayment()" style="width:100%;justify-content:center;padding:11px;margin-top:12px">Save Payment</button>'
@@ -5527,7 +5544,7 @@ function openINVPayModal(id){
     '<div class="form-grid">'+
     '<div class="fg"><label>Amount (&#8358;) *</label><input type="number" id="inv-pay-amt" placeholder="0" max="'+bal+'"/></div>'+
     '<div class="fg"><label>Date *</label><input type="date" id="inv-pay-date" value="'+td()+'"/></div>'+
-    '<div class="fg"><label>Method</label><select id="inv-pay-mth"><option value="">Select</option><option>Cash</option><option>Bank Transfer</option><option>POS</option></select></div>'+
+    payModeHTML('inv-pay-mth')+
     '<div class="fg"><label>Note</label><input id="inv-pay-note" placeholder="Optional note"/></div>'+
     '</div>'+
     '<button class="btn btn-purple" onclick="saveINVPayment()" style="width:100%;justify-content:center;padding:11px;margin-top:12px">Save Return Payment</button>'
@@ -5889,7 +5906,7 @@ function invPrincipalSectionHTML(i,ctx){
   }else{
     h+='<div class="form-grid no-print">'+
       '<div class="fg"><label>Date Paid *</label><input type="date" id="inv-pr-date-'+ctx+'" value="'+td()+'"/></div>'+
-      '<div class="fg"><label>Method</label><select id="inv-pr-mth-'+ctx+'"><option value="">Select</option><option>Cash</option><option>Bank Transfer</option><option>POS</option></select></div>'+
+      payModeHTML('inv-pr-mth-'+ctx)+
       '<div class="fg"><label>Note</label><input id="inv-pr-note-'+ctx+'" placeholder="Optional note"/></div></div>'+
       '<button class="btn btn-purple no-print" style="width:100%;justify-content:center;padding:11px;margin-top:8px" onclick="markINVPrincipalPaid(\''+i.id+'\',\''+ctx+'\')">&#10003; Mark Principal Paid (&#8358;'+fmt(amt)+')</button>';
   }
@@ -6792,13 +6809,14 @@ function openCTBPayModal(id){
     '<div class="form-grid">'+
     '<div class="fg"><label>Amount Received (&#8358;) *</label><input type="number" id="ctb-pay-amt" value="'+c.amount+'"/></div>'+
     '<div class="fg"><label>Payment Date *</label><input type="date" id="ctb-pay-date" value="'+td()+'"/></div>'+
+    payModeHTML('ctb-pay-mth')+
     '<div class="fg"><label>Remarks / Notes</label><input id="ctb-pay-note" placeholder="Optional remarks"/></div>'+
     '</div>'+
     '<button class="btn btn-navy" style="background:#16a34a;width:100%;justify-content:center;padding:11px;margin-top:12px" onclick="saveCTBPayment()">Save Contribution</button>'+
     '<div class="sh" style="margin-top:8px">History ('+(c.payments||[]).length+')</div>'+
     ((c.payments||[]).length===0?'<p style="color:var(--muted);font-size:.82rem;text-align:center;padding:10px">No contributions recorded yet.</p>':
-    '<div class="tbl-wrap"><table><thead><tr><th>#</th><th>Ref</th><th>Amount</th><th>Date</th><th>Del</th></tr></thead><tbody>'+
-    [...(c.payments||[])].reverse().map((p,ri)=>{const idx=(c.payments.length-1)-ri;return '<tr><td>'+(idx+1)+'</td><td>'+(p.ref||'--')+'</td><td style="color:#16a34a;font-weight:700">&#8358;'+fmt(p.amount)+'</td><td>'+p.date+'</td><td><button class="btn btn-red btn-sm" onclick="delCTBPayment('+idx+')">&#128465;</button></td></tr>';}).join('')+
+    '<div class="tbl-wrap"><table><thead><tr><th>#</th><th>Ref</th><th>Amount</th><th>Date</th><th>Mode</th><th>Del</th></tr></thead><tbody>'+
+    [...(c.payments||[])].reverse().map((p,ri)=>{const idx=(c.payments.length-1)-ri;return '<tr><td>'+(idx+1)+'</td><td>'+(p.ref||'--')+'</td><td style="color:#16a34a;font-weight:700">&#8358;'+fmt(p.amount)+'</td><td>'+p.date+'</td><td>'+(p.method||'--')+'</td><td><button class="btn btn-red btn-sm" onclick="delCTBPayment('+idx+')">&#128465;</button></td></tr>';}).join('')+
     '</tbody></table></div>');
   showModal('ctb-pay-modal');
 }
@@ -6808,7 +6826,7 @@ function saveCTBPayment(){
   if(!date){toast('Select the payment date','e');return}
   const c=allContributions.find(x=>x.id===ctbCurId);if(!c)return;
   const ref=ctbGenRef();
-  const payments=[...(c.payments||[]),{amount:amt,date,note:v('ctb-pay-note'),ref,recordedBy:currentSession.name||currentSession.username,recordedAt:new Date().toISOString()}];
+  const payments=[...(c.payments||[]),{amount:amt,date,note:v('ctb-pay-note'),method:v('ctb-pay-mth'),ref,recordedBy:currentSession.name||currentSession.username,recordedAt:new Date().toISOString()}];
   db.collection('contributions').doc(ctbCurId).set({payments},{merge:true}).then(()=>{
     c.payments=payments;
     logAudit('Contribution Recorded', '\u20a6'+fmt(amt)+' from '+c.name+' ('+c.ctbId+') on '+date+' &bull; Ref: '+ref);
@@ -7287,13 +7305,14 @@ function openSALPayModal(id){
     '<div class="form-grid">'+
     '<div class="fg"><label>Amount Received (&#8358;) *</label><input type="number" id="sal-pay-amt" value="'+c.amount+'"/></div>'+
     '<div class="fg"><label>Payment Date *</label><input type="date" id="sal-pay-date" value="'+td()+'"/></div>'+
+    payModeHTML('sal-pay-mth')+
     '<div class="fg"><label>Remarks / Notes</label><input id="sal-pay-note" placeholder="Optional remarks"/></div>'+
     '</div>'+
     '<button class="btn btn-navy" style="background:#0369a1;width:100%;justify-content:center;padding:11px;margin-top:12px" onclick="saveSALPayment()">Save Contribution</button>'+
     '<div class="sh" style="margin-top:8px">History ('+(c.payments||[]).length+')</div>'+
     ((c.payments||[]).length===0?'<p style="color:var(--muted);font-size:.82rem;text-align:center;padding:10px">No contributions recorded yet.</p>':
-    '<div class="tbl-wrap"><table><thead><tr><th>#</th><th>Ref</th><th>Amount</th><th>Date</th><th>Del</th></tr></thead><tbody>'+
-    [...(c.payments||[])].reverse().map((p,ri)=>{const idx=(c.payments.length-1)-ri;return '<tr><td>'+(idx+1)+'</td><td>'+(p.ref||'--')+'</td><td style="color:#0369a1;font-weight:700">&#8358;'+fmt(p.amount)+'</td><td>'+p.date+'</td><td><button class="btn btn-red btn-sm" onclick="delSALPayment('+idx+')">&#128465;</button></td></tr>';}).join('')+
+    '<div class="tbl-wrap"><table><thead><tr><th>#</th><th>Ref</th><th>Amount</th><th>Date</th><th>Mode</th><th>Del</th></tr></thead><tbody>'+
+    [...(c.payments||[])].reverse().map((p,ri)=>{const idx=(c.payments.length-1)-ri;return '<tr><td>'+(idx+1)+'</td><td>'+(p.ref||'--')+'</td><td style="color:#0369a1;font-weight:700">&#8358;'+fmt(p.amount)+'</td><td>'+p.date+'</td><td>'+(p.method||'--')+'</td><td><button class="btn btn-red btn-sm" onclick="delSALPayment('+idx+')">&#128465;</button></td></tr>';}).join('')+
     '</tbody></table></div>');
   showModal('sal-pay-modal');
 }
@@ -7303,7 +7322,7 @@ function saveSALPayment(){
   if(!date){toast('Select the payment date','e');return}
   const c=allSalaryContributions.find(x=>x.id===salCurId);if(!c)return;
   const ref=salGenRef();
-  const payments=[...(c.payments||[]),{amount:amt,date,note:v('sal-pay-note'),ref,recordedBy:currentSession.name||currentSession.username,recordedAt:new Date().toISOString()}];
+  const payments=[...(c.payments||[]),{amount:amt,date,note:v('sal-pay-note'),method:v('sal-pay-mth'),ref,recordedBy:currentSession.name||currentSession.username,recordedAt:new Date().toISOString()}];
   db.collection('salarycontributions').doc(salCurId).set({payments},{merge:true}).then(()=>{
     c.payments=payments;
     logAudit('Salary Contribution Recorded', '\u20a6'+fmt(amt)+' from '+c.name+' ('+c.salId+') on '+date+' &bull; Ref: '+ref);
@@ -7981,7 +8000,7 @@ function openCESPayModal(id){
     '<div class="form-grid">'+
     '<div class="fg"><label>Instalment Due ('+c.plan+') (&#8358;) *</label><input type="number" id="ces-pay-amt" value="'+cesNextInstalment(c)+'"/></div>'+
     '<div class="fg"><label>Payment Date *</label><input type="date" id="ces-pay-date" value="'+td()+'"/></div>'+
-    '<div class="fg"><label>Payment Method</label><input id="ces-pay-method" placeholder="Cash, Transfer, etc."/></div>'+
+    payModeHTML('ces-pay-method')+
     '<div class="fg"><label>Transaction Reference</label><input id="ces-pay-ref" placeholder="Leave blank to auto-generate"/></div>'+
     '</div>'+
     '<button class="btn btn-navy" style="background:#7c3aed;width:100%;justify-content:center;padding:11px;margin-top:8px" onclick="saveCESPayment()">Save Repayment</button>'+
@@ -8071,7 +8090,7 @@ function openCESFeeModal(id){
     '<div class="form-grid">'+
     '<div class="fg"><label>Processing Fee (&#8358;) *</label><input type="number" id="ces-fee-amt" value="'+c.processingFee.amount+'"/></div>'+
     '<div class="fg"><label>Date Paid *</label><input type="date" id="ces-fee-date" value="'+td()+'"/></div>'+
-    '<div class="fg"><label>Method</label><select id="ces-fee-method"><option>Cash</option><option>Bank Transfer</option><option>POS</option></select></div>'+
+    payModeHTML('ces-fee-method')+
     '<div class="fg"><label>Reference</label><input id="ces-fee-ref" placeholder="Leave blank to auto-generate"/></div></div>'+
     '<p style="font-size:.76rem;color:var(--muted);margin:6px 0">After saving: give the parent the receipt, ZMONIE Ajo Card and Members ID Card.</p>'+
     '<button class="btn btn-navy" style="background:#7c3aed;width:100%;justify-content:center;padding:11px" onclick="saveCESFee()">&#9989; Save Processing Fee</button>';
@@ -9580,6 +9599,34 @@ function twPrint(){
         return;
       }
       backfill(p);   // saves the ID on the customer record so it is only asked once
+      return orig.apply(this,arguments);
+    };
+  });
+})();
+// ===== MODE OF PAYMENT (Cash / Transfer / POS / Others) =====
+function payModeHTML(id){
+  return '<div class="fg"><label>Mode of Payment *</label><select id="'+id+'" onchange="payModeChg(this)"><option value="">Select mode</option><option>Cash</option><option>Transfer</option><option>POS</option><option>Others</option></select>'+
+    '<input id="'+id+'-other" placeholder="Specify the other mode" style="display:none;margin-top:6px"/></div>';
+}
+function payModeChg(sel){const o=document.getElementById(sel.id+'-other');if(o)o.style.display=sel.value==='Others'?'':'none'}
+(function payModeInstall(){
+  const map={
+    savePayment:()=>'pay-mth', saveEBPayment:()=>'eb-pay-mth', saveINVPayment:()=>'inv-pay-mth',
+    saveCTBPayment:()=>'ctb-pay-mth', saveSALPayment:()=>'sal-pay-mth', saveCESPayment:()=>'ces-pay-method',
+    saveCESFee:()=>'ces-fee-method', markINVPrincipalPaid:a=>'inv-pr-mth-'+(a[1]||'pm')
+  };
+  Object.keys(map).forEach(name=>{
+    const orig=window[name];if(typeof orig!=='function')return;
+    window[name]=function(){
+      const id=map[name](arguments),sel=document.getElementById(id);
+      if(sel){
+        if(!sel.value){toast('Select the mode of payment: Cash, Transfer, POS or Others','e');try{sel.focus()}catch(x){}return}
+        if(sel.value==='Others'){
+          const o=document.getElementById(id+'-other'),t=o?o.value.trim():'';
+          if(!t){toast('Please specify the other mode of payment','e');try{o.focus()}catch(x){}return}
+          const val='Others: '+t;sel.add(new Option(val,val,true,true));
+        }
+      }
       return orig.apply(this,arguments);
     };
   });
