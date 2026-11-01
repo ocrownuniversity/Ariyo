@@ -1528,7 +1528,7 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
           <div class="sh">&#128181; Loan Details</div>
           <div class="form-grid">
             <div class="fg"><label>Loan Amount (&#8358;) *</label><input required type="number" id="f-amount" placeholder="0" oninput="liveCalc()"/></div>
-            <div class="fg"><label>Interest Rate</label><input id="f-interest" value="24%" readonly/></div>
+            <div class="fg"><label>Interest Rate</label><input id="f-interest" value="20%" readonly/></div>
             <div class="fg"><label>Loan Purpose *</label><input required id="f-purpose" placeholder="Purpose of loan"/></div>
             <div class="fg"><label>Repayment Plan *</label>
               <select id="f-plan" required onchange="liveCalc()">
@@ -1564,12 +1564,12 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
           <!-- LIVE CALC BOX -->
           <div class="calc-box" id="calc-box" style="display:none">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-              <div class="calc-title" style="margin-bottom:0">&#129518; Live Calculation &mdash; 24% Fixed Interest</div>
+              <div class="calc-title" style="margin-bottom:0">&#129518; Live Calculation &mdash; 20% Fixed Interest</div>
               <button type="button" class="btn btn-sm no-print" onclick="window.print()" style="background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:.68rem;padding:4px 10px">&#128424; Print</button>
             </div>
             <div class="calc-grid">
               <div class="calc-item"><div class="cv" id="c-p">&#8358;0</div><div class="cl">Principal</div></div>
-              <div class="calc-item"><div class="cv" id="c-i">&#8358;0</div><div class="cl">Interest (24%)</div></div>
+              <div class="calc-item"><div class="cv" id="c-i">&#8358;0</div><div class="cl">Interest (20%)</div></div>
               <div class="calc-item hl"><div class="cv" id="c-t">&#8358;0</div><div class="cl">Total Repayable</div></div>
               <div class="calc-item"><div class="cv" id="c-md">&#8212;</div><div class="cl">Maturity Date</div></div>
             </div>
@@ -1672,12 +1672,12 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
       <!-- Print header (only shows when printing) -->
       <div class="calc-print-header">
         <h2>Zmonie Management Software &mdash; Loan Calculation Report</h2>
-        <p>Generated on <span id="calc-print-date"></span> &bull; 24% Fixed Interest Rate</p>
+        <p>Generated on <span id="calc-print-date"></span> &bull; 20% Fixed Interest Rate</p>
       </div>
 
       <div class="card" style="max-width:860px;margin:0 auto">
         <div class="card-title">
-          <span>&#129518; Loan Calculator &mdash; 24% Fixed Interest</span>
+          <span>&#129518; Loan Calculator &mdash; 20% Fixed Interest</span>
           <div style="display:flex;gap:6px;flex-wrap:wrap" class="no-print">
             <button class="btn btn-out btn-sm tip" data-tip="Print this calculation" onclick="printCalc()">&#128424; Print</button>
             <button class="btn btn-gold btn-sm tip" data-tip="Copy result to clipboard" onclick="copyCalcResult()">&#128203; Copy</button>
@@ -1774,8 +1774,8 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
           </div>
           <div class="range-row">
             <label style="font-size:.75rem;font-weight:700;color:var(--muted);width:110px">Interest Rate</label>
-            <input type="range" id="wi-rate" min="5" max="50" step="1" value="24" oninput="wiCalc()"/>
-            <div class="range-val" id="wi-rate-lbl">24%</div>
+            <input type="range" id="wi-rate" min="5" max="50" step="1" value="20" oninput="wiCalc()"/>
+            <div class="range-val" id="wi-rate-lbl">20%</div>
           </div>
           <div id="wi-result"></div>
         </div>
@@ -1901,7 +1901,7 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
           <div class="card-title">&#8505; System Information</div>
           <div class="info-grid" style="margin-top:0">
             <div class="iitem"><label>System</label><p>Zmonie v3.0</p></div>
-            <div class="iitem"><label>Interest Rate</label><p>24% Fixed</p></div>
+            <div class="iitem"><label>Interest Rate</label><p>20% Fixed (new loans)</p></div>
             <div class="iitem"><label>Total Borrowers</label><p id="si-total">&#8212;</p></div>
             <div class="iitem"><label>Branches</label><p id="si-branches">&#8212;</p></div>
             <div class="iitem"><label>Staff Accounts</label><p id="si-staff">&#8212;</p></div>
@@ -2584,7 +2584,10 @@ function getBranchName(id){
 }
 
 // ===== LOAN MATH =====
-function getTR(l){const p=parseFloat(l.amount)||0;return p+(p*24/100)}
+// New loans use LOAN_RATE. Each loan keeps the rate it was created with (stored in l.interest); older loans without one stay at 24%.
+const LOAN_RATE=20;
+function loanRate(l){const r=parseFloat(l&&l.interest);return r>0?r:24}
+function getTR(l){const p=parseFloat(l.amount)||0;return p+(p*loanRate(l)/100)}
 function getBal(l){return Math.max(0,getTR(l)-getPaid(l))}
 function getPaid(l){return(l.payments||[]).reduce((s,p)=>s+(parseFloat(p.amount)||0),0)}
 function isOverdue(l){
@@ -3132,7 +3135,7 @@ function renderRep(list){
   else if(flt)fil=fil.filter(l=>l.status===flt);
   const tb=document.getElementById('rep-tbody');if(!tb)return;
   tb.innerHTML=fil.map(l=>{
-    const pr=parseFloat(l.amount)||0,ir=pr*24/100,tr=pr+ir;
+    const pr=parseFloat(l.amount)||0,ir=pr*loanRate(l)/100,tr=pr+ir;
     const paid=getPaid(l),bal=Math.max(0,tr-paid),od=isOverdue(l);
     const pct=tr>0?Math.min(100,Math.round(paid/tr*100)):0;
     const cls=pct<30?'dng':pct<70?'warn':'';
@@ -3161,7 +3164,7 @@ function openRepayModal(id){
   const l=allLoans.find(x=>x.id===id);if(!l)return;
   // Check branch access
   if(currentSession.role==='staff'&&l.branchId!==currentSession.branchId){toast('Access denied: not your branch','e');return}
-  const pr=parseFloat(l.amount)||0,ir=pr*24/100,tr=pr+ir;
+  const pr=parseFloat(l.amount)||0,ir=pr*loanRate(l)/100,tr=pr+ir;
   const paid=getPaid(l),bal=getBal(l),pct=tr>0?Math.min(100,Math.round(paid/tr*100)):0;
   const od=isOverdue(l);const cls=pct<30?'dng':pct<70?'warn':'';
   document.getElementById('rm-title').textContent='Payment — '+(l.name||'');
@@ -3266,7 +3269,7 @@ function liveCalc(){
   const box=document.getElementById('calc-box');
   if(!amt){if(box)box.style.display='none';return}
   if(box)box.style.display='block';
-  const pr=amt,ir=pr*24/100,tr=pr+ir;
+  const pr=amt,ir=pr*LOAN_RATE/100,tr=pr+ir;
   const md=getMaturity(appdate,dn,du);
   const inst=getInstall(tr,plan,dn,du);
   document.getElementById('c-p').innerHTML='&#8358;'+fmt(pr);
@@ -3282,13 +3285,13 @@ function scCalc(){
   const amt=parseFloat(v('sc-amt'))||0,plan=v('sc-plan'),dn=v('sc-dn'),du=v('sc-du');
   const res=document.getElementById('sc-result'),sch=document.getElementById('sc-schedule');
   if(!amt){res.innerHTML='';sch.innerHTML='';return}
-  const pr=amt,ir=pr*24/100,tr=pr+ir;
+  const pr=amt,ir=pr*LOAN_RATE/100,tr=pr+ir;
   const md=getMaturity(td(),dn,du),inst=getInstall(tr,plan,dn,du);
   res.innerHTML=`<div class="calc-box">
-    <div class="calc-title">&#129518; Calculation Result &mdash; 24% Fixed Interest</div>
+    <div class="calc-title">&#129518; Calculation Result &mdash; 20% Fixed Interest</div>
     <div class="calc-grid">
       <div class="calc-item"><div class="cv">&#8358;${fmt(pr)}</div><div class="cl">Principal</div></div>
-      <div class="calc-item"><div class="cv">&#8358;${fmt(ir)}</div><div class="cl">Interest (24%)</div></div>
+      <div class="calc-item"><div class="cv">&#8358;${fmt(ir)}</div><div class="cl">Interest (20%)</div></div>
       <div class="calc-item hl"><div class="cv">&#8358;${fmt(tr)}</div><div class="cl">Total Repayable</div></div>
       <div class="calc-item"><div class="cv">${md}</div><div class="cl">Maturity Date</div></div>
     </div>
@@ -3334,7 +3337,7 @@ function submitForm(e){
     idtype:v('f-idtype'),idnum:v('f-idnum'),
     amount:v('f-amount'),purpose:v('f-purpose'),
     duration:dn+' '+du,durationNum:dn,durationUnit:du,
-    repayplan:v('f-plan'),interest:'24',
+    repayplan:v('f-plan'),interest:String(LOAN_RATE),
     appdate,maturityDate:matISO,maturityDateStr:matStr,
     status:v('f-status'),
     branchId:branchId,
@@ -3356,7 +3359,7 @@ function resetForm(){
   const cp=document.getElementById('f-cust-pick');if(cp)cp.value='';
   const ci=document.getElementById('f-cust-id');if(ci)ci.value='';
   document.getElementById('loan-form').reset();
-  document.getElementById('f-interest').value='24%';
+  document.getElementById('f-interest').value=LOAN_RATE+'%';
   ['f-photo-data','g1-photo-data','g2-photo-data'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
   document.getElementById('f-docs-data').value='[]';
   document.getElementById('f-docs-list').innerHTML='';
@@ -3407,7 +3410,7 @@ function viewProfile(id){
   curId=id;
   const l=allLoans.find(x=>x.id===id);if(!l)return;
   if(currentSession.role==='staff'&&(l.branchId!==currentSession.branchId||l.createdBy!==currentSession.username)){toast('Access denied','e');return}
-  const pr=parseFloat(l.amount)||0,ir=pr*24/100,tr=pr+ir;
+  const pr=parseFloat(l.amount)||0,ir=pr*loanRate(l)/100,tr=pr+ir;
   const paid=getPaid(l),bal=getBal(l),pct=tr>0?Math.min(100,Math.round(paid/tr*100)):0;
   const cls=pct<30?'dng':pct<70?'warn':'';
   const od=isOverdue(l);
@@ -3428,7 +3431,7 @@ function viewProfile(id){
     </div>
     <div class="repay-sum">
       <div class="rs"><div class="rv">&#8358;${fmt(pr)}</div><div class="rl">Principal</div></div>
-      <div class="rs"><div class="rv" style="color:var(--amber)">&#8358;${fmt(ir)}</div><div class="rl">Interest 24%</div></div>
+      <div class="rs"><div class="rv" style="color:var(--amber)">&#8358;${fmt(ir)}</div><div class="rl">Interest ${loanRate(l)}%</div></div>
       <div class="rs"><div class="rv" style="color:var(--navy)">&#8358;${fmt(tr)}</div><div class="rl">Total Repayable</div></div>
       <div class="rs"><div class="rv" style="color:var(--green)">&#8358;${fmt(paid)}</div><div class="rl">Total Paid</div></div>
       <div class="rs"><div class="rv" style="color:${bal>0?'var(--red)':'var(--green)'}">&#8358;${fmt(bal)}</div><div class="rl">Balance</div></div>
@@ -3516,7 +3519,7 @@ function renderReports(){
     return true;
   });
   const totalP=list.reduce((s,l)=>s+(parseFloat(l.amount)||0),0);
-  const totalI=list.reduce((s,l)=>s+(parseFloat(l.amount)||0)*0.24,0);
+  const totalI=list.reduce((s,l)=>s+(parseFloat(l.amount)||0)*loanRate(l)/100,0);
   const totalR=list.reduce((s,l)=>s+getTR(l),0);
   const totalPd=list.reduce((s,l)=>s+getPaid(l),0);
   const totalBal=list.reduce((s,l)=>s+getBal(l),0);
@@ -3528,7 +3531,7 @@ function renderReports(){
     <div class="stat-card" style="border-color:var(--green)"><div class="stat-val">&#8358;${fmt(totalPd)}</div><div class="stat-lbl">Collected</div></div>
     <div class="stat-card" style="border-color:var(--red)"><div class="stat-val">&#8358;${fmt(totalBal)}</div><div class="stat-lbl">Outstanding</div></div>`;
   document.getElementById('rpt-tbody').innerHTML=list.map(l=>{
-    const pr=parseFloat(l.amount)||0,ir=pr*0.24,tr=pr+ir,pd=getPaid(l),bal=getBal(l);
+    const pr=parseFloat(l.amount)||0,ir=pr*loanRate(l)/100,tr=pr+ir,pd=getPaid(l),bal=getBal(l);
     return `<tr>
       <td><strong>${l.loanId||l.id}</strong></td>
       <td>${l.name||''}</td>
@@ -3927,7 +3930,7 @@ function changePin(){
 function exportExcel(){
   if(typeof XLSX==='undefined'){toast('Excel library not loaded','e');return}
   const rows=getScopedLoans().map(l=>{
-    const pr=parseFloat(l.amount)||0,ir=pr*0.24,tr=pr+ir,pd=getPaid(l),bal=getBal(l);
+    const pr=parseFloat(l.amount)||0,ir=pr*loanRate(l)/100,tr=pr+ir,pd=getPaid(l),bal=getBal(l);
     return{
       'Loan ID':l.loanId||l.id,'Name':l.name,'Phone':l.phone,'DOB':l.dob,
       'Branch':getBranchName(l.branchId),'Loan Officer':l.loanOfficer||'',
@@ -4041,7 +4044,7 @@ function copyCalcResult(){
   const sch=document.getElementById('sc-schedule');
   const amt=document.getElementById('sc-amt').value;
   if(!amt){toast('Nothing to copy — run a calculation first','w');return}
-  const pr=parseFloat(amt)||0,ir=pr*0.24,tr=pr+ir;
+  const pr=parseFloat(amt)||0,ir=pr*LOAN_RATE/100,tr=pr+ir;
   const plan=document.getElementById('sc-plan').value;
   const dn=document.getElementById('sc-dn').value;
   const du=document.getElementById('sc-du').value;
@@ -4050,7 +4053,7 @@ function copyCalcResult(){
   let text='LOAN CALCULATION — Zmonie Management Software\n';
   text+='================================\n';
   text+='Principal:        \u20A6'+fmt(pr)+'\n';
-  text+='Interest (24%):   \u20A6'+fmt(ir)+'\n';
+  text+='Interest (20%):   \u20A6'+fmt(ir)+'\n';
   text+='Total Repayable:  \u20A6'+fmt(tr)+'\n';
   if(plan)text+='Repayment Plan:   '+plan+'\n';
   if(dn)text+='Duration:         '+dn+' '+du+'\n';
@@ -4075,7 +4078,7 @@ function calcCompare(){
   const du=document.getElementById('cmp-du').value;
   const res=document.getElementById('cmp-result');
   if(!amt||!dn){res.innerHTML='<p style="color:var(--muted);font-size:.83rem;text-align:center;padding:20px">Enter amount and duration above to compare all plans.</p>';return}
-  const pr=amt,ir=pr*0.24,tr=pr+ir;
+  const pr=amt,ir=pr*LOAN_RATE/100,tr=pr+ir;
   const plans=['Daily','Weekly','Bi-weekly','Monthly','Lump Sum'];
   const cards=plans.map((plan,idx)=>{
     const inst=getInstall(tr,plan,dn,du);
@@ -4086,7 +4089,7 @@ function calcCompare(){
       (isBest?'<div class="best-badge">Most Common</div>':'')+
       '<h4>'+plan+' Plan</h4>'+
       '<div class="compare-row"><span>Principal</span><span>&#8358;'+fmt(pr)+'</span></div>'+
-      '<div class="compare-row"><span>Interest (24%)</span><span>&#8358;'+fmt(ir)+'</span></div>'+
+      '<div class="compare-row"><span>Interest (20%)</span><span>&#8358;'+fmt(ir)+'</span></div>'+
       '<div class="compare-row"><span>Total Repayable</span><span>&#8358;'+fmt(tr)+'</span></div>'+
       '<div class="compare-row"><span>'+inst.lbl+'</span><span style="color:var(--green);font-weight:800">&#8358;'+fmt(inst.amt)+'</span></div>'+
       '<div class="compare-row"><span>Maturity Date</span><span>'+md+'</span></div>'+
@@ -4142,14 +4145,14 @@ function reverseCalc(){
   else if(plan==='Monthly')periods=du==='months'?n:du==='weeks'?Math.ceil(n/4):Math.ceil(n/30);
   if(!periods){res.innerHTML='';return}
   const totalRepayable=install*periods;
-  const principal=totalRepayable/1.24;
+  const principal=totalRepayable/(1+LOAN_RATE/100);
   const interest=totalRepayable-principal;
   const md=getMaturity(td(),dn,du);
   res.innerHTML='<div class="calc-box" style="margin-top:12px">'+
     '<div class="calc-title">Reverse Calculation Result</div>'+
     '<div class="calc-grid">'+
     '<div class="calc-item"><div class="cv">&#8358;'+fmt(principal)+'</div><div class="cl">Max Principal</div></div>'+
-    '<div class="calc-item"><div class="cv">&#8358;'+fmt(interest)+'</div><div class="cl">Interest (24%)</div></div>'+
+    '<div class="calc-item"><div class="cv">&#8358;'+fmt(interest)+'</div><div class="cl">Interest (20%)</div></div>'+
     '<div class="calc-item hl"><div class="cv">&#8358;'+fmt(totalRepayable)+'</div><div class="cl">Total Repayable</div></div>'+
     '<div class="calc-item"><div class="cv">'+md+'</div><div class="cl">Maturity Date</div></div>'+
     '</div>'+
@@ -4219,7 +4222,7 @@ function downloadCalcPage(){
 
   if(!amt){ toast('Run a calculation first before downloading','w'); return; }
 
-  const pr = amt, ir = pr*0.24, tr = pr+ir;
+  const pr = amt, ir = pr*LOAN_RATE/100, tr = pr+ir;
   const inst = getInstall(tr, plan, dn, du);
   const md = getMaturity(startDate||td(), dn, du);
   const now = new Date().toLocaleDateString('en-NG',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
@@ -4318,13 +4321,13 @@ function downloadCalcPage(){
 <div class="page">
   <div class="header">
     <div class="header-brand">Zmo<span>nie</span> <span style="font-size:.7rem;opacity:.6;font-family:Inter">Pro</span></div>
-    <div class="header-sub">Loan Calculation Report &bull; Generated ${now} &bull; 24% Fixed Interest</div>
+    <div class="header-sub">Loan Calculation Report &bull; Generated ${now} &bull; 20% Fixed Interest</div>
   </div>
   <div class="body">
     <h2 style="font-size:1rem;font-weight:800;color:#0f2342;margin-bottom:14px">&#129518; Calculation Summary</h2>
     <div class="summary-grid">
       <div class="sum-card"><div class="sum-val">&#8358;${fmt(pr)}</div><div class="sum-lbl">Principal</div></div>
-      <div class="sum-card" style="background:#fffbeb;border-color:#fcd34d"><div class="sum-val" style="color:#d97706">&#8358;${fmt(ir)}</div><div class="sum-lbl">Interest (24%)</div></div>
+      <div class="sum-card" style="background:#fffbeb;border-color:#fcd34d"><div class="sum-val" style="color:#d97706">&#8358;${fmt(ir)}</div><div class="sum-lbl">Interest (20%)</div></div>
       <div class="sum-card hl"><div class="sum-val">&#8358;${fmt(tr)}</div><div class="sum-lbl">Total Repayable</div></div>
       <div class="sum-card green"><div class="sum-val" style="color:#16a34a">${md}</div><div class="sum-lbl">Maturity Date</div></div>
     </div>
@@ -4334,7 +4337,7 @@ function downloadCalcPage(){
       <div class="detail-item"><label>Repayment Plan</label><p>${plan||'--'}</p></div>
       <div class="detail-item"><label>Duration</label><p>${dn?dn+' '+du:'--'}</p></div>
       <div class="detail-item"><label>Start Date</label><p>${startDate||'--'}</p></div>
-      <div class="detail-item"><label>Interest Rate</label><p>24% Fixed</p></div>
+      <div class="detail-item"><label>Interest Rate</label><p>20% Fixed</p></div>
       <div class="detail-item"><label>Interest Amount</label><p>&#8358;${fmt(ir)}</p></div>
       <div class="detail-item"><label>Generated</label><p>${now}</p></div>
     </div>
