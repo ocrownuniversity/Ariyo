@@ -547,15 +547,16 @@ mark{background:#fef08a;border-radius:3px;padding:0 2px}
             </div>
           </div>
           <div class="sh">&#128101; Next of Kin Details</div>
+          <p style="font-size:.76rem;color:var(--muted);margin:-2px 0 10px">The next of kin's means of identification and photo are <strong>optional</strong> at registration.</p>
           <div class="form-grid">
             <div class="fg"><label>Next of Kin Full Name</label><input id="cust-nok-name" placeholder="Full name of next of kin"/></div>
             <div class="fg"><label>Relationship</label><input id="cust-nok-rel" placeholder="e.g. Wife, Brother, Son"/></div>
             <div class="fg"><label>Phone Number</label><input id="cust-nok-phone" placeholder="08XXXXXXXXX"/></div>
             <div class="fg"><label>Address</label><input id="cust-nok-addr" placeholder="Next of kin address"/></div>
             <div class="fg"><label>Occupation</label><input id="cust-nok-occ" placeholder="Next of kin occupation"/></div>
-            <div class="fg"><label>ID Type</label><select id="cust-nok-idtype"><option value="">Select</option><option>National ID (NIN)</option><option>Voter's Card</option><option>Driver's Licence</option><option>International Passport</option></select></div>
-            <div class="fg"><label>ID Number</label><input id="cust-nok-idnum" placeholder="Next of kin ID number"/></div>
-            <div class="fg"><label>Next of Kin Photo</label>
+            <div class="fg"><label>ID Type (optional)</label><select id="cust-nok-idtype"><option value="">Select</option><option>National ID (NIN)</option><option>Voter's Card</option><option>Driver's Licence</option><option>International Passport</option></select></div>
+            <div class="fg"><label>ID Number (optional)</label><input id="cust-nok-idnum" placeholder="Can be supplied later"/></div>
+            <div class="fg"><label>Next of Kin Photo (optional)</label>
               <div class="photo-up" onclick="document.getElementById('cust-nok-photo-file').click()">
                 <img id="cust-nok-photo-prev" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='55%25' font-size='28' text-anchor='middle' fill='%2394a3b8'%3E%F0%9F%91%A4%3C/text%3E%3C/svg%3E" alt=""/>
                 <p>Click to upload photo</p>
@@ -2594,6 +2595,15 @@ function isOverdue(l){
   if(l.status==='Completed'||l.status==='Rejected'||!l.maturityDate) return false;
   return new Date(l.maturityDate)<new Date()&&getBal(l)>0;
 }
+// Suggested payment: the rest of the instalment currently being paid, never more than the balance.
+function nextInstAmt(inst,paid,bal){
+  if(!(bal>0))return 0;
+  if(!(inst>0))return Math.round(bal*100)/100;
+  const k=Math.floor(paid/inst+1e-9)+1;
+  let due=k*inst-paid;
+  if(due<1)due+=inst;
+  return Math.round(Math.min(due,bal)*100)/100;
+}
 function getInstall(total,plan,dn,du){
   const n=parseInt(dn)||1;
   if(!total||!plan||!dn) return null;
@@ -3167,6 +3177,9 @@ function openRepayModal(id){
   const pr=parseFloat(l.amount)||0,ir=pr*loanRate(l)/100,tr=pr+ir;
   const paid=getPaid(l),bal=getBal(l),pct=tr>0?Math.min(100,Math.round(paid/tr*100)):0;
   const od=isOverdue(l);const cls=pct<30?'dng':pct<70?'warn':'';
+  // Suggested payment = one instalment of the loan's plan (daily / weekly / monthly), never more than the balance
+  const instl=getInstall(tr,l.repayplan,l.durationNum,l.durationUnit);
+  const sug=nextInstAmt(instl?instl.amt:0,paid,bal);
   document.getElementById('rm-title').textContent='Payment — '+(l.name||'');
   document.getElementById('rm-body').innerHTML=`
     <div style="background:var(--bg);border-radius:8px;padding:12px;margin-bottom:14px">
@@ -3187,7 +3200,7 @@ function openRepayModal(id){
     ${bal>0?`
       <div class="sh" style="margin-top:4px">Record New Payment</div>
       <div class="form-grid">
-        <div class="fg"><label>Amount (&#8358;) *</label><input type="number" id="pay-amt" placeholder="0" max="${bal}"/></div>
+        <div class="fg"><label>Amount (&#8358;) *</label><input type="number" id="pay-amt" placeholder="0" max="${bal}" step="any" value="${sug||''}"/>${instl?`<div style="font-size:.72rem;color:var(--muted);margin-top:4px">${l.repayplan} instalment: <strong>&#8358;${fmt(instl.amt)}</strong> (auto-filled, you can change it)</div>`:''}</div>
         <div class="fg"><label>Date *</label><input type="date" id="pay-date" value="${td()}"/></div>
         ${payModeHTML('pay-mth')}
         <div class="fg"><label>Note</label><input id="pay-note" placeholder="Optional note"/></div>
@@ -5053,6 +5066,25 @@ function viewEBProfile(id){
   showModal('eb-profile-modal');
 }
 
+// ===== EASYBUY INSTALMENT (auto-fill) =====
+function ebInstalment(e){
+  const rem=Math.max(0,(parseFloat(e.price)||0)-(parseFloat(e.initial)||0));
+  const plan=e.plan,dn=parseInt(e.durationNum)||0,du=e.durationUnit;
+  if(!rem||!plan)return null;
+  if(plan==='Lump Sum')return {amt:rem};
+  if(!dn)return null;
+  let periods;
+  if(plan==='Daily')periods=du==='weeks'?dn*7:du==='months'?dn*30:dn;
+  else if(plan==='Weekly')periods=du==='weeks'?dn:du==='months'?dn*4:Math.ceil(dn/7);
+  else if(plan==='Bi-weekly')periods=du==='weeks'?Math.ceil(dn/2):du==='months'?dn*2:Math.ceil(dn/14);
+  else if(plan==='Monthly')periods=du==='months'?dn:du==='weeks'?Math.ceil(dn/4):Math.ceil(dn/30);
+  return periods>0?{amt:rem/periods}:null;
+}
+function ebSuggest(e,bal){const i=ebInstalment(e);return nextInstAmt(i?i.amt:0,ebGetPaid(e),bal)}
+function ebInstHint(e){
+  const i=ebInstalment(e);
+  return i&&e.plan!=='Lump Sum'?'<div style="font-size:.72rem;color:var(--muted);margin-top:4px">'+e.plan+' instalment: <strong>&#8358;'+fmt(i.amt)+'</strong> (auto-filled, you can change it)</div>':'';
+}
 // ===== EASYBUY PAYMENT MODAL =====
 function openEBPayModal(id){
   ebCurId=id;
@@ -5067,7 +5099,7 @@ function openEBPayModal(id){
     (bal>0?
     '<div class="sh" style="margin-top:4px">Record Instalment Payment</div>'+
     '<div class="form-grid">'+
-    '<div class="fg"><label>Amount (&#8358;) *</label><input type="number" id="eb-pay-amt" placeholder="0" max="'+bal+'"/></div>'+
+    '<div class="fg"><label>Amount (&#8358;) *</label><input type="number" id="eb-pay-amt" placeholder="0" max="'+bal+'" step="any" value="'+(ebSuggest(e,bal)||'')+'"/>'+ebInstHint(e)+'</div>'+
     '<div class="fg"><label>Date *</label><input type="date" id="eb-pay-date" value="'+td()+'"/></div>'+
     payModeHTML('eb-pay-mth')+
     '<div class="fg"><label>Note</label><input id="eb-pay-note" placeholder="Optional note"/></div>'+
